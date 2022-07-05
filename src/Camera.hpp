@@ -17,18 +17,37 @@
 #include <string>
 
 class Camera{
-  int fd;
 public:
-  Camera(std::string filename);
+  Camera(std::string filename); /**< Open the camera*/
+  void release(); /**< Close the camera */
+
+  /**
+  * Obtain information about driver and hardware capabilities.
+  * @param cap structure filled by the driver
+  */
   void getCapabilities(std::unique_ptr<v4l2_capability> & cap);
-  void release();
+
+  /**
+  * Set the camera setting to a given value
+  * @param property Ioctl code of the parameter to change
+  * @param value Value for the parameter
+  */
   void set(int property, double value);
+
+  /**
+  * Set the camera setting to a given value
+  * @param width Image width in pixels
+  * @param heigh Image height in pixels
+  * @param pixelformat The pixel format or type of compression (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
+  */
   void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
   double get(int property);
   char* capture(std::string filename);
 
 
 private:
+  int fd;
   char* requestBuffer();
-  void saveFrame(char* deviceBuff, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename);
+  void saveFrameToFile(char* deviceBuff, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename);
+  void saveFrameToMemoryLocation(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo); //TODO
 };

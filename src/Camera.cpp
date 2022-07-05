@@ -129,7 +129,7 @@ char* Camera::requestBuffer()
   return buffer;
 }
 
-void Camera::saveFrame(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename)
+void Camera::saveFrameToFile(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename)
 {
   // Write the data out to file
   std::ofstream outFile;
@@ -145,7 +145,7 @@ void Camera::saveFrame(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, s
   while(remainingBufferSize > 0) {
     bufPos += outFileMemBlockSize;
 
-    outFileMemBlockSize = 1024;    // output block size (To set up)
+    outFileMemBlockSize = 2048;    // output block size (To set up)
 
     outFileMemBlock.reset(new char[sizeof(char) * outFileMemBlockSize]);
 
@@ -160,6 +160,12 @@ void Camera::saveFrame(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, s
   }
   outFile.close();
   std::cout<<"Saved as "<<filename<<std::endl;
+}
+
+
+void Camera::saveFrameToMemoryLocation(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo)
+{
+
 }
 
 
@@ -192,7 +198,7 @@ char* Camera::capture(std::string filename="")
   // Frames get written after dequeuing the buffer
 
   if (filename != "")
-  saveFrame(buffer, bufferinfo, filename);
+  saveFrameToFile(buffer, bufferinfo, filename);
   munmap(buffer, bufferinfo->length);
 
   return buffer;

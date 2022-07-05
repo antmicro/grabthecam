@@ -22,8 +22,10 @@ int main(int argc, char const *argv[])
   }
 
   camera.setFormat(1024, 1024, V4L2_PIX_FMT_MJPEG);
-  camera.set(V4L2_CID_EXPOSURE_AUTO, 0);
+  camera.set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
   camera.get(V4L2_CID_EXPOSURE_AUTO);
+
+
 
   camera.capture("../out/photo.jpg");
 
