@@ -42,13 +42,22 @@ void Camera::set(int property, double value)
   c.value = value;
   if(v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) == 0)
     std::cout << property<<" set to "<<value<<std::endl;
+  else if (errno == EINVAL)
+    std::cerr<<"Invalid query \""<<property<<" = "<<value<<"\""<<std::endl;
+  else
+    std::cerr<<"Setting property failed errno:"<<errno<<std::endl;
 }
 
 double Camera::get(int property)
 {
   v4l2_control c;
+  c.id = property;
   if(v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) == 0)
     std::cout << c.id<<" value is "<<c.value<<std::endl;
+  else if (errno == EINVAL)
+    std::cerr<<"Not a valid property "<<property<<std::endl;
+  else
+    std::cerr<<"Getting property failed errno:"<<errno<<std::endl;
 
   return c.value;
 }
@@ -73,6 +82,7 @@ void Camera::setFormat(unsigned int width, unsigned int height, unsigned int pix
 
 void Camera::release()
 {
+  std::cout<<"closing...\n";
   v4l2_close(this->fd);
 }
 
