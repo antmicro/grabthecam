@@ -31,5 +31,9 @@
 *.out
 *.app
 
+# Images
+*.jpg
+*.img
+
 # Build directory
 build/
