@@ -1,3 +1,5 @@
+// g++ *.cpp -o example -Wall -lv4l2
+
 #include "Camera.hpp"
 
 int main(int argc, char const *argv[])
@@ -20,7 +22,10 @@ int main(int argc, char const *argv[])
   }
 
   camera.setFormat(1024, 1024, V4L2_PIX_FMT_MJPEG);
-  camera.capture("photo.jpg");
+  camera.set(V4L2_CID_EXPOSURE_AUTO, 3);
+  camera.get(V4L2_CID_EXPOSURE_AUTO);
+
+  camera.capture("../out/photo.jpg");
 
   camera.release();
   return 0;

@@ -16,7 +16,7 @@ Camera::Camera(std::string filename)
 {
   //Open the device
 
-  this->fd = open(filename.c_str(), O_RDWR);
+  this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
   if(fd < 0){
       std::cerr<<"Failed to open the device";
   }
@@ -35,8 +35,22 @@ void Camera::getCapabilities(std::unique_ptr<v4l2_capability>& cap)
   }
 }
 
-void Camera::set(int prop, double value)
+void Camera::set(int property, double value)
 {
+  v4l2_control c;
+  c.id = property;
+  c.value = value;
+  if(v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) == 0)
+    std::cout << property<<" set to "<<value<<std::endl;
+}
+
+double Camera::get(int property)
+{
+  v4l2_control c;
+  if(v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) == 0)
+    std::cout << c.id<<" value is "<<c.value<<std::endl;
+
+  return c.value;
 }
 
 void Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
@@ -59,7 +73,7 @@ void Camera::setFormat(unsigned int width, unsigned int height, unsigned int pix
 
 void Camera::release()
 {
-  close(this->fd);
+  v4l2_close(this->fd);
 }
 
 char* Camera::requestBuffer()
@@ -109,6 +123,7 @@ void Camera::saveFrame(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, s
 {
   // Write the data out to file
   std::ofstream outFile;
+  //TODO: check if folder exists
   outFile.open(filename, std::ios::binary| std::ios::app);
 
   int bufPos = 0;   // the position in the buffer
