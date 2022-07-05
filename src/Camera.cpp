@@ -12,19 +12,20 @@ int xioctl(int fd, int request, void *arg)
 }
 
 
-Camera::Camera(const char* filename)
+Camera::Camera(std::string filename)
 {
   //Open the device
-  this->fd = open(filename, O_RDWR);
+
+  this->fd = open(filename.c_str(), O_RDWR);
   if(fd < 0){
       std::cerr<<"Failed to open the device";
   }
 }
 
-void Camera::getCapabilities(v4l2_capability* cap)
+void Camera::getCapabilities(std::unique_ptr<v4l2_capability>& cap)
 {
   // Ask the device if it can capture frames
-  if (xioctl(this->fd, VIDIOC_QUERYCAP, cap) < 0)
+  if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
   {
       if (errno == EINVAL) {
           std::cerr<< "This is not a V4L2 device\n";
@@ -90,10 +91,21 @@ char* Camera::requestBuffer()
                       this->fd, queryBuffer.m.offset);
   memset(buffer, 0, queryBuffer.length);
 
+
+  //TODO: make shared_ptr
+  // char* a = new char('a');
+  //
+  // std::shared_ptr<char> bufferPtr;
+  //
+  // bufferPtr.reset(a);
+  // std::cout<<bufferPtr<<std::endl;
+  //
+  // bufferPtr.reset(buffer);
+
   return buffer;
 }
 
-void Camera::saveFrame(char* buffer, v4l2_buffer* bufferinfo, std::string filename)
+void Camera::saveFrame(char* buffer, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename)
 {
   // Write the data out to file
   std::ofstream outFile;
@@ -102,28 +114,27 @@ void Camera::saveFrame(char* buffer, v4l2_buffer* bufferinfo, std::string filena
   int bufPos = 0;   // the position in the buffer
   int outFileMemBlockSize = 0;  //the amount to copy from the buffer
   int remainingBufferSize = bufferinfo->bytesused; // the remaining buffer size
-  char* outFileMemBlock = NULL;  // a pointer to a new memory block
+
+  std::unique_ptr<char> outFileMemBlock;
 
   while(remainingBufferSize > 0) {
-      bufPos += outFileMemBlockSize;
+    bufPos += outFileMemBlockSize;
 
-      outFileMemBlockSize = 1024;    // output block size (To set up)
-      outFileMemBlock = new char[sizeof(char) * outFileMemBlockSize];
+    outFileMemBlockSize = 1024;    // output block size (To set up)
 
-      memcpy(outFileMemBlock, buffer+bufPos, outFileMemBlockSize);
-      outFile.write(outFileMemBlock,outFileMemBlockSize);
+    outFileMemBlock.reset(new char[sizeof(char) * outFileMemBlockSize]);
 
-      // calculate the amount of memory left to read (in case we are about to read too much)
-      if(outFileMemBlockSize > remainingBufferSize)
-          outFileMemBlockSize = remainingBufferSize;
+    memcpy(outFileMemBlock.get(), buffer+bufPos, outFileMemBlockSize);
+    outFile.write(outFileMemBlock.get(), outFileMemBlockSize);
 
-      remainingBufferSize -= outFileMemBlockSize;
+    // calculate the amount of memory left to read (in case we are about to read too much)
+    if(outFileMemBlockSize > remainingBufferSize)
+        outFileMemBlockSize = remainingBufferSize;
 
-      delete outFileMemBlock;
-    }
-    outFile.close();
-    std::cout<<"Saved as "<<filename<<std::endl;
-
+    remainingBufferSize -= outFileMemBlockSize;
+  }
+  outFile.close();
+  std::cout<<"Saved as "<<filename<<std::endl;
 }
 
 
@@ -131,32 +142,33 @@ char* Camera::capture(std::string filename="")
 {
   char* buffer = requestBuffer(); // buffer in the device memory
 
-  // Get a frame
-  v4l2_buffer bufferinfo;  //buffer in the computer memory
-  memset(&bufferinfo, 0, sizeof(bufferinfo));
-  bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  bufferinfo.memory = V4L2_MEMORY_MMAP;
-  bufferinfo.index = 0;
+  std::unique_ptr<v4l2_buffer> bufferinfo = std::make_unique<v4l2_buffer>();
+
+  memset(bufferinfo.get(), 0, sizeof(bufferinfo));
+  bufferinfo->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  bufferinfo->memory = V4L2_MEMORY_MMAP;
+  bufferinfo->index = 0;
 
   // Activate streaming
-  int type = bufferinfo.type;
+  int type = bufferinfo->type;
   if(xioctl(this->fd, VIDIOC_STREAMON, &type) < 0){
       std::cerr<<"Could not start streaming\n";
   }
 
   // Queue the buffer
-  if(xioctl(fd, VIDIOC_QBUF, &bufferinfo) < 0){
+  if(xioctl(fd, VIDIOC_QBUF, bufferinfo.get()) < 0){
       std::cerr<<"Could not queue buffer\n";
   }
 
   // Dequeue the buffer
-  if(xioctl(fd, VIDIOC_DQBUF, &bufferinfo) < 0){
+  if(xioctl(fd, VIDIOC_DQBUF, bufferinfo.get()) < 0){
       std::cerr<<"Could not dequeue the buffer, VIDIOC_DQBUF\n";
   }
   // Frames get written after dequeuing the buffer
 
   if (filename != "")
-  saveFrame(buffer, &bufferinfo, filename);
+  saveFrame(buffer, bufferinfo, filename);
+  munmap(buffer, bufferinfo->length);
 
   return buffer;
 }

@@ -13,12 +13,13 @@
 #include <string.h>
 #include <fstream>
 #include <string>
+#include <memory>
 
 class Camera{
   int fd;
 public:
-  Camera(const char* filename);
-  void getCapabilities(struct v4l2_capability* cap);
+  Camera(std::string filename);
+  void getCapabilities(std::unique_ptr<v4l2_capability> & cap);
   void release();
   void set(int prop, double value); //TODO
   void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
@@ -27,5 +28,5 @@ public:
 
 private:
   char* requestBuffer();
-  void saveFrame(char* deviceBuff, v4l2_buffer* bufferinfo, std::string filename);
+  void saveFrame(char* deviceBuff, std::unique_ptr<v4l2_buffer>& bufferinfo, std::string filename);
 };
