@@ -1,41 +1,18 @@
+#pragma once
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <libv4l2.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
-#include <linux/v4l2-common.h>
-#include <linux/v4l2-controls.h>
-#include <linux/videodev2.h>
-#include <memory>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
-#include <sys/mman.h>
 #include <string>
 #include <vector>
-
-struct D
-{ // deleter for the buffer ptr
-    int size;
-    D(int _size)
-    {
-        size = _size;
-    }
-    D(){;}
-    void operator() (char* p)
-    {
-        std::cout << "deleter " << size <<std::endl;
-        munmap(p, size);
-    }
-};
-
-using uchar_ptr = std::unique_ptr<char, D>;
-using ubuf_ptr = std::unique_ptr<v4l2_buffer>;
-using ucap_ptr = std::unique_ptr<v4l2_capability>;
-
+#include "consts.hpp"
 
 class Camera
 {

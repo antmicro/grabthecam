@@ -4,16 +4,22 @@ set(CMAKE_CXX_STANDARD 17)
 project(camera_capture VERSION 0.1)
 
 add_executable(${PROJECT_NAME}
-  src/example.cpp
+    src/example.cpp
 )
 
 include_directories(include)
 
 add_library(Camera
-  src/Camera.cpp
+    src/Camera.cpp)
+add_library(Frame
+    src/Frame.cpp
 )
 
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
 target_link_libraries(${PROJECT_NAME} PRIVATE Camera)
+target_link_libraries(${PROJECT_NAME} PRIVATE Frame)
 target_link_libraries(${PROJECT_NAME} PUBLIC v4l2)
 
 add_compile_options(-Wall -Wextra -pedantic -Werror)
