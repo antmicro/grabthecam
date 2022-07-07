@@ -26,12 +26,11 @@ int main(int argc, char const *argv[])
     camera.get(V4L2_CID_EXPOSURE_AUTO, val);
     std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
 
-    uchar_ptr photo;
-    int imageSize;
+    uframe_ptr frame;
+    camera.capture(frame, NULL, "../out/photo.jpg");
 
-    camera.capture(photo, &imageSize, NULL, "../out/photo.jpg");
+    frame -> rawFrameToFile("../out/photo.jpg");
 
-    // munmap(photo.get(), imageSize);//to pewnie powinno być w destruktorze unique_ptr buffer i stąd segfault?
     camera.release();
     return 0;
 }

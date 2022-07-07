@@ -98,7 +98,7 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     }
     else
     {
-	updateFormat();
+	    updateFormat();
         std::cout << "Format set to " << this -> height << "x" << this -> width << std::endl;
     }
     return 0;
@@ -107,8 +107,8 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
 int Camera::updateFormat(){
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-                        
-    if (xioctl(this -> fd, VIDIOC_S_FMT, &fmt) < 0)
+
+    if (xioctl(this -> fd, VIDIOC_G_FMT, &fmt) < 0)
     {
         std::cerr << "VIDIOC_G_FMT failed" << errno << std::endl;
         return -1;
@@ -116,8 +116,8 @@ int Camera::updateFormat(){
 
     this -> height = fmt.fmt.pix.height;
     this -> width = fmt.fmt.pix.width;
-    
-    return 0;    
+
+    return 0;
 }
 
 void Camera::release()
@@ -176,8 +176,6 @@ int Camera::saveFrameToFile(const uchar_ptr &buffer, ubuf_ptr &bufferinfo, std::
     //TODO: check if folder exists
     outFile.open(filename, std::ios::binary | std::ios::app);
 
-    int bufPos = 0;  // the position in the buffer
-
     outFile.write(buffer.get(), (double)bufferinfo.get()->bytesused);
     outFile.close();
     std::cout << "Saved as " << filename << std::endl;
@@ -185,8 +183,9 @@ int Camera::saveFrameToFile(const uchar_ptr &buffer, ubuf_ptr &bufferinfo, std::
 }
 
 
-int Camera::capture(uchar_ptr &buffer, int *bufferLength, void *location=NULL, std::string filename="")
+int Camera::capture(uframe_ptr &frame, void *location=NULL, std::string filename="")
 {
+    uchar_ptr buffer;
     std::cout << "Capture\n";
     requestBuffer(buffer, location); // buffer in the device memory
 
@@ -220,15 +219,7 @@ int Camera::capture(uchar_ptr &buffer, int *bufferLength, void *location=NULL, s
     }
 
     // Frames get written after dequeuing the buffer
-
-    if (filename != "")
-    {
-        saveFrameToFile(buffer, bufferinfo, filename);
-    }
-
-    *bufferLength = bufferinfo -> length;
-
-
+    frame = std::make_unique<Frame>(buffer, bufferinfo, width, height);
 
     return 0;
 }

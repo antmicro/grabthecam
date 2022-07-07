@@ -66,13 +66,11 @@ public:
     *
     * Fetches a frame (to the specific location) and optionally saves it to file.
     *
-    * @param buffer Pointer to the variable where the frame will be stored
-    * @param bufferLength Pointer to the variable where the size of the frame will be stored
+    * @param frame
     * @param location [Optional] Pointer to a place in memory where frame should be placed
     * @param filename [Optional] Filename, where the frame will be saved
     */
-    int capture(uchar_ptr &buffer, int *bufferLength, void *location, std::string filename);
-    //int capture(Frame* frame, void *location, std::string filename);
+    int capture(uframe_ptr &frame, void *location, std::string filename);
 
     /**
     *Returns the camera's file descriptor
