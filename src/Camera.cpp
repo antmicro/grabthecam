@@ -23,6 +23,12 @@ Camera::Camera(std::string filename)
     }
 }
 
+Camera::~Camera()
+{
+    std::cout << "closing...\n";
+    v4l2_close(this -> fd);
+}
+
 int Camera::getCapabilities(ucap_ptr &cap)
 {
     // Ask the device if it can capture frames
@@ -104,7 +110,8 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     return 0;
 }
 
-int Camera::updateFormat(){
+int Camera::updateFormat()
+{
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -118,12 +125,6 @@ int Camera::updateFormat(){
     this -> width = fmt.fmt.pix.width;
 
     return 0;
-}
-
-void Camera::release()
-{
-    std::cout << "closing...\n";
-    v4l2_close(this -> fd);
 }
 
 int Camera::requestBuffer(uchar_ptr &buffer, void *location=NULL)
@@ -169,21 +170,7 @@ int Camera::requestBuffer(uchar_ptr &buffer, void *location=NULL)
     return 0;
 }
 
-int Camera::saveFrameToFile(const uchar_ptr &buffer, ubuf_ptr &bufferinfo, std::string filename)
-{
-    // Write the data out to file
-    std::ofstream outFile;
-    //TODO: check if folder exists
-    outFile.open(filename, std::ios::binary | std::ios::app);
-
-    outFile.write(buffer.get(), (double)bufferinfo.get()->bytesused);
-    outFile.close();
-    std::cout << "Saved as " << filename << std::endl;
-    return 0;
-}
-
-
-int Camera::capture(uframe_ptr &frame, void *location=NULL, std::string filename="")
+int Camera::capture(uframe_ptr &frame, void *location=NULL)
 {
     uchar_ptr buffer;
     std::cout << "Capture\n";

@@ -28,7 +28,7 @@ public:
     /**
     * Close the camera
     */
-    void release();
+    ~Camera();
 
     /**
     * Obtain information about driver and hardware capabilities.
@@ -66,11 +66,10 @@ public:
     *
     * Fetches a frame (to the specific location) and optionally saves it to file.
     *
-    * @param frame
+    * @param frame Frame object, where all frame details will be stored
     * @param location [Optional] Pointer to a place in memory where frame should be placed
-    * @param filename [Optional] Filename, where the frame will be saved
     */
-    int capture(uframe_ptr &frame, void *location, std::string filename);
+    int capture(uframe_ptr &frame, void *location);
 
     /**
     *Returns the camera's file descriptor
@@ -82,7 +81,13 @@ private:
     int width;
     int height;
 
+    /*
+    * Get current width and height
+    */
     int updateFormat();
+
+    /*
+    * Ask the device for the buffer to capture frames and allocate memory for it
+    */
     int requestBuffer(uchar_ptr &buffer, void *location);
-    int saveFrameToFile(const uchar_ptr &buffer, ubuf_ptr &bufferinfo, std::string filename);
 };

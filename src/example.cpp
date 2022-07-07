@@ -27,10 +27,8 @@ int main(int argc, char const *argv[])
     std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
 
     uframe_ptr frame;
-    camera.capture(frame, NULL, "../out/photo.jpg");
+    camera.capture(frame, NULL);
 
     frame -> rawFrameToFile("../out/photo.jpg");
-
-    camera.release();
     return 0;
 }
