@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.10.0)
+set(CMAKE_CXX_STANDARD 17)
 
-project(camera_capture VERSION 0.0)
+project(camera_capture VERSION 0.1)
 
-include_directories("${PROJECT_BINARY_DIR}")
+add_executable(${PROJECT_NAME}
+  src/example.cpp
+)
 
-add_library(Camera src/Camera.cpp src/Camera.hpp)
+include_directories(include)
 
-add_executable(${PROJECT_NAME} src/example.cpp)
+add_library(Camera
+  src/Camera.cpp
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Camera)
-
 target_link_libraries(${PROJECT_NAME} PUBLIC v4l2)
 
 add_compile_options(-Wall -Wextra -pedantic -Werror)
