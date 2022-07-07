@@ -12,7 +12,9 @@
 #include <sys/ioctl.h>
 #include <string>
 #include <vector>
+
 #include "consts.hpp"
+#include "Frame.hpp"
 
 class Camera
 {
@@ -70,6 +72,7 @@ public:
     * @param filename [Optional] Filename, where the frame will be saved
     */
     int capture(uchar_ptr &buffer, int *bufferLength, void *location, std::string filename);
+    //int capture(Frame* frame, void *location, std::string filename);
 
     /**
     *Returns the camera's file descriptor
@@ -78,7 +81,10 @@ public:
 
 private:
     int fd;
+    int width;
+    int height;
 
+    int updateFormat();
     int requestBuffer(uchar_ptr &buffer, void *location);
     int saveFrameToFile(const uchar_ptr &buffer, ubuf_ptr &bufferinfo, std::string filename);
 };

@@ -98,9 +98,26 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     }
     else
     {
-        std::cout << "Format set" << std::endl;
+	updateFormat();
+        std::cout << "Format set to " << this -> height << "x" << this -> width << std::endl;
     }
     return 0;
+}
+
+int Camera::updateFormat(){
+    v4l2_format fmt = {0};
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+                        
+    if (xioctl(this -> fd, VIDIOC_S_FMT, &fmt) < 0)
+    {
+        std::cerr << "VIDIOC_G_FMT failed" << errno << std::endl;
+        return -1;
+    }
+
+    this -> height = fmt.fmt.pix.height;
+    this -> width = fmt.fmt.pix.width;
+    
+    return 0;    
 }
 
 void Camera::release()
