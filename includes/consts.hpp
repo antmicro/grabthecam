@@ -24,3 +24,7 @@ struct D
 using uchar_ptr = std::unique_ptr<char, D>;
 using ubuf_ptr = std::unique_ptr<v4l2_buffer>;
 using ucap_ptr = std::unique_ptr<v4l2_capability>;
+using schar_ptr = std::shared_ptr<char>;
+using sbuf_ptr = std::shared_ptr<v4l2_buffer>;
+using wchar_ptr = std::weak_ptr<char>;
+using wbuf_ptr = std::weak_ptr<v4l2_buffer>;

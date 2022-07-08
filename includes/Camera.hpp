@@ -80,6 +80,9 @@ private:
     int fd;
     int width;
     int height;
+    bool ready_to_capture;
+    schar_ptr frame_buffer;
+    sbuf_ptr info_buffer;
 
     /*
     * Get current width and height
@@ -89,5 +92,5 @@ private:
     /*
     * Ask the device for the buffer to capture frames and allocate memory for it
     */
-    int requestBuffer(uchar_ptr &buffer, void *location);
+    int requestBuffer(void *location);
 };

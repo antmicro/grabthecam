@@ -21,11 +21,16 @@ Camera::Camera(std::string filename)
     {
         std::cerr << "Failed to open the device\n";
     }
+    ready_to_capture = false;
 }
 
 Camera::~Camera()
 {
     std::cout << "closing...\n";
+
+    // end streaming
+    int type = info_buffer -> type;
+    xioctl(fd, VIDIOC_STREAMOFF, &type);
     v4l2_close(this -> fd);
 }
 
@@ -89,6 +94,18 @@ int Camera::get(int property, double &value)
 
 int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
 {
+    if (ready_to_capture)
+    {
+        int type = info_buffer -> type;
+        if(xioctl(fd, VIDIOC_STREAMOFF, &type) < 0){
+            std::cerr << ("Could not end streaming, VIDIOC_STREAMOFF");
+            return -1;
+        }
+    }
+
+    frame_buffer = nullptr;
+    ready_to_capture = false;
+
     //Set Image format
     v4l2_format fmt = {0};
 
@@ -99,7 +116,7 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
     if (xioctl(this -> fd, VIDIOC_S_FMT, &fmt) < 0)
     {
-        std::cerr << "VIDIOC_S_FMT failed\n";
+        std::cerr << "VIDIOC_S_FMT failed " << errno <<std::endl;
         return -1;
     }
     else
@@ -107,6 +124,7 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
 	    updateFormat();
         std::cout << "Format set to " << this -> height << "x" << this -> width << std::endl;
     }
+
     return 0;
 }
 
@@ -127,7 +145,7 @@ int Camera::updateFormat()
     return 0;
 }
 
-int Camera::requestBuffer(uchar_ptr &buffer, void *location=NULL)
+int Camera::requestBuffer(void *location=NULL)
 {
     // Request Buffer from the device, which will be used for capturing frames
     struct v4l2_requestbuffers requestBuffer = {0};
@@ -165,48 +183,53 @@ int Camera::requestBuffer(uchar_ptr &buffer, void *location=NULL)
         return -3;
     }
 
-    buffer = std::unique_ptr<char, D>(b, D(queryBuffer.length));
+    frame_buffer = std::shared_ptr<char>(b, D(queryBuffer.length));
 
     return 0;
 }
 
 int Camera::capture(uframe_ptr &frame, void *location=NULL)
 {
-    uchar_ptr buffer;
     std::cout << "Capture\n";
-    requestBuffer(buffer, location); // buffer in the device memory
 
-    ubuf_ptr bufferinfo = std::make_unique<v4l2_buffer>();
-
-    memset(bufferinfo.get(), 0, sizeof(bufferinfo));
-    bufferinfo -> type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    bufferinfo -> memory = V4L2_MEMORY_MMAP;
-    bufferinfo -> index = 0;
-
-    // Activate streaming
-    int type = bufferinfo -> type;
-    if(xioctl(this -> fd, VIDIOC_STREAMON, &type) < 0)
+    if (!ready_to_capture)
     {
-        std::cerr << "Could not start streaming\n";
-        return -1;
+        std::cout << "Preparing to capture...\n";
+        requestBuffer(location); // buffer in the device memory
+
+        info_buffer = std::make_shared<v4l2_buffer>();
+        memset(info_buffer.get(), 0, sizeof(info_buffer));
+        info_buffer -> type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        info_buffer -> memory = V4L2_MEMORY_MMAP;
+        info_buffer -> index = 0;
+
+        // Activate streaming
+        int type = info_buffer -> type;
+        if(xioctl(this -> fd, VIDIOC_STREAMON, &type) < 0)
+        {
+            std::cerr << "Could not start streaming\n";
+            return -1;
+        }
+
+        ready_to_capture = true;
     }
 
     // Queue the buffer
-    if(xioctl(fd, VIDIOC_QBUF, bufferinfo.get()) < 0)
+    if(xioctl(fd, VIDIOC_QBUF, info_buffer.get()) < 0)
     {
-        std::cerr << "Could not queue buffer\n";
+        std::cerr << "Could not queue buffer " << errno;
         return -2;
     }
 
     // Dequeue the buffer
-    if(xioctl(fd, VIDIOC_DQBUF, bufferinfo.get()) < 0)
+    if(xioctl(fd, VIDIOC_DQBUF, info_buffer.get()) < 0)
     {
         std::cerr << "Could not dequeue the buffer, VIDIOC_DQBUF\n";
         return -3;
     }
 
     // Frames get written after dequeuing the buffer
-    frame -> assignFrame(buffer, bufferinfo, this -> width, this -> height);
+    frame -> assignFrame(frame_buffer, info_buffer, this -> width, this -> height);
 
     return 0;
 }

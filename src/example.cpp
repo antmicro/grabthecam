@@ -1,8 +1,42 @@
 #include "../includes/Camera.hpp"
 #include "../includes/YuvFrame.hpp"
+#include <sstream>
+
+void grab_frame(uframe_ptr &frame, Camera &camera, int i)
+{
+    std::stringstream filename;
+    frame = std::make_unique<YuvFrame>();
+    camera.capture(frame, NULL);
+
+    // save frames
+    filename << "../out/raw_" << i << ".raw";
+    if (frame -> rawFrameToFile(filename.str()) < 0)
+    {
+        std::cout << "FAILED to save raw frame\n";
+    }
+    else
+    {
+        std::cout << "Raw frame saved\n";
+    }
+    filename.str("");
+    filename.clear();
+
+    filename << "../out/processed_" << i << ".png";
+    if (frame -> processedFrameToFile(filename.str()) < 0)
+    {
+        std::cout << "FAILED to save processed frame\n";
+    }
+    else
+    {
+        std::cout << "Processed frame saved\n";
+    }
+    filename.str("");
+    filename.clear();
+}
 
 int main(int argc, char const *argv[])
 {
+    // get camera capabilities
     ucap_ptr cap = std::make_unique<v4l2_capability>();
 
     Camera camera("/dev/video0");
@@ -20,18 +54,27 @@ int main(int argc, char const *argv[])
         exit (EXIT_FAILURE);
     }
 
-    camera.setFormat(1024, 1024, V4L2_PIX_FMT_YYUV);
+    // adjust camera settings
+    camera.setFormat(960, 720, V4L2_PIX_FMT_YYUV);
     camera.set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
 
     double val;
     camera.get(V4L2_CID_EXPOSURE_AUTO, val);
     std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
 
-    // uframe_ptr frame;
-    std::unique_ptr<Frame> frame = std::make_unique<YuvFrame>();
-    camera.capture(frame, NULL);
+    // get frame
+    uframe_ptr frame;
 
-    frame -> rawFrameToFile("../out/photo.raw");
-    frame -> processedFrameToFile("../out/yuv.png");
+    for (int i = 0; i < 2; i++)
+    {
+        grab_frame(frame, camera, i);
+    }
+
+    // frame = nullptr;
+    //
+    // camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
+    //
+    // grab_frame(frame, camera, 2);
+
     return 0;
 }
