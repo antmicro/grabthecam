@@ -206,7 +206,7 @@ int Camera::capture(uframe_ptr &frame, void *location=NULL)
     }
 
     // Frames get written after dequeuing the buffer
-    frame = std::make_unique<Frame>(buffer, bufferinfo, width, height);
+    frame -> assignFrame(buffer, bufferinfo, this -> width, this -> height);
 
     return 0;
 }

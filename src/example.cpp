@@ -1,4 +1,5 @@
 #include "../includes/Camera.hpp"
+#include "../includes/YuvFrame.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -19,16 +20,18 @@ int main(int argc, char const *argv[])
         exit (EXIT_FAILURE);
     }
 
-    camera.setFormat(1024, 1024, V4L2_PIX_FMT_MJPEG);
+    camera.setFormat(1024, 1024, V4L2_PIX_FMT_YYUV);
     camera.set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
 
     double val;
     camera.get(V4L2_CID_EXPOSURE_AUTO, val);
     std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
 
-    uframe_ptr frame;
+    // uframe_ptr frame;
+    std::unique_ptr<Frame> frame = std::make_unique<YuvFrame>();
     camera.capture(frame, NULL);
 
-    frame -> rawFrameToFile("../out/photo.jpg");
+    frame -> rawFrameToFile("../out/photo.raw");
+    frame -> processedFrameToFile("../out/yuv.png");
     return 0;
 }

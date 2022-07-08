@@ -2,6 +2,8 @@
 #include "consts.hpp"
 #include <opencv2/core/mat.hpp>
 #include <fstream>
+#include <opencv2/imgcodecs.hpp> //imwrite
+
 
 using cv::Mat;
 
@@ -15,7 +17,7 @@ public:
     * @param width Image width in pixels
     * @param height Image height in pixels
     */
-    Frame(uchar_ptr &location, ubuf_ptr &info, int width, int heigh);
+    Frame(int _raw_frame_dtype);
     uchar_ptr location;
     int width;
     int height;
@@ -25,27 +27,33 @@ public:
     * @param filename Filename, where the frame will be saved
     */
     int rawFrameToFile(std::string filename);
+    int processedFrameToFile(std::string filename);
 
     /*
     * Get frame as openCV matrix
-    * @return Returns Frame
+    * @return Returns raw frame
     */
-    Mat getCvMat();
+    Mat getRawFrame();
+    Mat getProcessedFrame();
 
     /*
     * Preprocess the raw frame
-    * <THIS METHOD WILL BE ABSTRACT>
     */
-    int retreive(); //decode
+    virtual int retreive() = 0;
+    void assignFrame(uchar_ptr &location, ubuf_ptr &info, int width, int heigh);
+protected:
+    Mat processed_frame;
+    int raw_frame_dtype;
 
 private:
     ubuf_ptr info;
-    Mat cv_mat;
+    Mat raw_frame;
 
     /*
     * Convert the frame to an openCV matrix
     */
-    void to_cv_mat();
+    void rawToCvMat();
+
 };
 
 using uframe_ptr = std::unique_ptr<Frame>;

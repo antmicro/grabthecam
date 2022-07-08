@@ -1,34 +1,44 @@
 #include "../includes/Frame.hpp"
 
-Frame::Frame(uchar_ptr &location, ubuf_ptr &info, int width, int height)
-    : height(height), width(width)
+
+Frame::Frame(int _raw_frame_dtype) : height(0), width(0)
 {
-    this -> location = std::move(location);
-    this -> info = std::move(info);
-    this -> cv_mat = Mat();
+    this -> location = nullptr;
+    this -> info = nullptr;
+    this -> raw_frame = Mat();
+    this -> raw_frame_dtype = _raw_frame_dtype;
 }
 
-
-void Frame::to_cv_mat()
+void Frame::assignFrame(uchar_ptr &_location, ubuf_ptr &_info, int _width, int _height)
 {
-    cv_mat = Mat(height, width, CV_8SC2, (void*)location.get());
-    // check data type https://docs.opencv.org/4.x/d3/d63/classcv_1_1Mat.html#a51615ebf17a64c968df0bf49b4de6a3a
+    this -> height = _height;
+    this -> width = _width;
+    this -> location = std::move(_location);
+    this -> info = std::move(_info);
 }
 
-cv::Mat Frame::getCvMat()
+void Frame::rawToCvMat()
 {
-    if (cv_mat.empty())
+    raw_frame = Mat(height, width, raw_frame_dtype, (void*)location.get());
+}
+
+cv::Mat Frame::getRawFrame()
+{
+
+    if (raw_frame.empty())
     {
-        to_cv_mat();
+        rawToCvMat();
     }
-    return cv_mat;
+    return raw_frame;
 }
 
-int retreive()
+Mat Frame::getProcessedFrame()
 {
-    std::cout << "Preprocessing...\n";
-    //TODO: abstract method implemented for specific types of frames
-    return 0;
+    if (processed_frame.empty())
+    {
+        retreive();
+    }
+    return processed_frame;
 }
 
 int Frame::rawFrameToFile(std::string filename)
@@ -40,6 +50,12 @@ int Frame::rawFrameToFile(std::string filename)
 
     outFile.write(location.get(), (double)info.get()->bytesused);
     outFile.close();
-    std::cout << "Saved as " << filename << std::endl;
+    std::cout << "Raw frame saved as " << filename << std::endl;
     return 0;
+}
+
+int Frame::processedFrameToFile(std::string filename)
+{
+    cv::imwrite(filename, getProcessedFrame());
+    std::cout << "Processed frame saved as " << filename << std::endl;
 }
