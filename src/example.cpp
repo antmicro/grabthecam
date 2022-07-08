@@ -7,20 +7,20 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>();
     camera.capture(frame, NULL);
-
-    // save frames
-    filename << "../out/raw_" << i << ".raw";
-    if (frame -> rawFrameToFile(filename.str()) < 0)
-    {
-        std::cout << "FAILED to save raw frame\n";
-    }
-    else
-    {
-        std::cout << "Raw frame saved\n";
-    }
-    filename.str("");
-    filename.clear();
-
+    //
+    // // save frames
+    // filename << "../out/raw_" << i << ".raw";
+    // if (frame -> rawFrameToFile(filename.str()) < 0)
+    // {
+    //     std::cout << "FAILED to save raw frame\n";
+    // }
+    // else
+    // {
+    //     std::cout << "Raw frame saved\n";
+    // }
+    // filename.str("");
+    // filename.clear();
+    //
     filename << "../out/processed_" << i << ".png";
     if (frame -> processedFrameToFile(filename.str()) < 0)
     {
@@ -65,16 +65,16 @@ int main(int argc, char const *argv[])
     // get frame
     uframe_ptr frame;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 10; i++)
     {
         grab_frame(frame, camera, i);
     }
 
-    // frame = nullptr;
-    //
-    // camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
-    //
-    // grab_frame(frame, camera, 2);
+    frame = nullptr;
+    
+    camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
+
+    grab_frame(frame, camera, 2);
 
     return 0;
 }

@@ -96,15 +96,33 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
 {
     if (ready_to_capture)
     {
+        // stop streaming
         int type = info_buffer -> type;
         if(xioctl(fd, VIDIOC_STREAMOFF, &type) < 0){
             std::cerr << ("Could not end streaming, VIDIOC_STREAMOFF");
             return -1;
         }
-    }
 
-    frame_buffer = nullptr;
-    ready_to_capture = false;
+        // free buffers
+        //TODO: apply request n buffers method
+        struct v4l2_requestbuffers requestBuffer = {0};
+        requestBuffer.count = 0;
+        requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        requestBuffer.memory = V4L2_MEMORY_MMAP;
+
+        if (xioctl(this -> fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
+        {
+            std::cerr << "Requesting Buffer failed\n";
+            return -1;
+        }
+
+        frame_buffer = nullptr;
+        info_buffer = nullptr;
+
+        std::cout << frame_buffer.use_count() << " " << info_buffer.use_count() << std::endl;
+
+        ready_to_capture = false;
+    }
 
     //Set Image format
     v4l2_format fmt = {0};
@@ -147,6 +165,8 @@ int Camera::updateFormat()
 
 int Camera::requestBuffer(void *location=NULL)
 {
+    //TODO: request n buffers
+
     // Request Buffer from the device, which will be used for capturing frames
     struct v4l2_requestbuffers requestBuffer = {0};
     requestBuffer.count = 1;

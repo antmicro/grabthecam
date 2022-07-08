@@ -16,7 +16,7 @@ struct D
     D(){;}
     void operator() (char* p)
     {
-        // std::cout << "deleter " << size <<std::endl;
+        std::cout << "deleter " << size <<std::endl;
         munmap(p, size);
     }
 };
