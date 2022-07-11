@@ -29,8 +29,7 @@ Camera::~Camera()
     std::cout << "closing...\n";
 
     // end streaming
-    int type = info_buffer -> type;
-    xioctl(fd, VIDIOC_STREAMOFF, &type);
+    xioctl(fd, VIDIOC_STREAMOFF, &buffer_type);
     v4l2_close(this -> fd);
 }
 
@@ -97,37 +96,34 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     if (ready_to_capture)
     {
         // stop streaming
-        int type = info_buffer -> type;
+        int type = buffer_type;
         if(xioctl(fd, VIDIOC_STREAMOFF, &type) < 0){
             std::cerr << ("Could not end streaming, VIDIOC_STREAMOFF");
             return -1;
         }
 
         // free buffers
-        //TODO: apply request n buffers method
+        //TODO: request 0 buffers
+
         struct v4l2_requestbuffers requestBuffer = {0};
         requestBuffer.count = 0;
-        requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        requestBuffer.type = buffer_type;
         requestBuffer.memory = V4L2_MEMORY_MMAP;
 
         if (xioctl(this -> fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
         {
-            std::cerr << "Requesting Buffer failed\n";
+            std::cerr << "Emptying Buffer failed " << errno << std::endl;
             return -1;
         }
 
-        frame_buffer = nullptr;
-        info_buffer = nullptr;
-
-        std::cout << frame_buffer.use_count() << " " << info_buffer.use_count() << std::endl;
-
+        buffers.clear();
         ready_to_capture = false;
     }
 
     //Set Image format
     v4l2_format fmt = {0};
 
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt.type = buffer_type;
     fmt.fmt.pix.width = width;
     fmt.fmt.pix.height = height;
     fmt.fmt.pix.pixelformat = pixelformat;
@@ -149,7 +145,7 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
 int Camera::updateFormat()
 {
     v4l2_format fmt = {0};
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt.type = buffer_type;
 
     if (xioctl(this -> fd, VIDIOC_G_FMT, &fmt) < 0)
     {
@@ -163,69 +159,81 @@ int Camera::updateFormat()
     return 0;
 }
 
-int Camera::requestBuffer(void *location=NULL)
+
+int Camera::requestBuffers(int n, void *location)
 {
-    //TODO: request n buffers
+    buffers.clear();
 
     // Request Buffer from the device, which will be used for capturing frames
     struct v4l2_requestbuffers requestBuffer = {0};
-    requestBuffer.count = 1;
-    requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    requestBuffer.count = n;
+    requestBuffer.type = buffer_type;
     requestBuffer.memory = V4L2_MEMORY_MMAP;
 
     if (xioctl(this -> fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
     {
-        std::cerr << "Requesting Buffer failed\n";
+        std::cerr << "Requesting Buffer failed" << errno << std::endl;
         return -1;
     }
 
-    // ask for the you requested buffer and allocate memory for it
-    struct v4l2_buffer queryBuffer = {0};
-    queryBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    queryBuffer.memory = V4L2_MEMORY_MMAP;
-    queryBuffer.index = 0;
-    if(xioctl(this -> fd, VIDIOC_QUERYBUF, &queryBuffer) < 0)
+    std::cout << "Reqbuf " << requestBuffer.count << std::endl; //if < 2 insufficient?
+
+    // ask for the requested buffers
+
+    struct v4l2_buffer queryBuffer;
+    schar_ptr start;
+
+    for (int i=0; i < requestBuffer.count; i++)
     {
-        std::cerr << "Device did not return the queryBuffer information\n";
-        return -2;
+	    memset (&queryBuffer, 0, sizeof(queryBuffer));
+
+        queryBuffer.type = buffer_type;
+        queryBuffer.memory = V4L2_MEMORY_MMAP;
+        queryBuffer.index = i;
+
+        if(xioctl(this -> fd, VIDIOC_QUERYBUF, &queryBuffer) < 0)
+        {
+            std::cerr << "Device did not return the queryBuffer information\n";
+            return -2;
+        }
+
+        // use a pointer to point to the newly created queryBuffer
+        // map the memory address of the device to an address in memory
+
+        char *b = (char*) mmap(location, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
+            this -> fd, queryBuffer.m.offset);
+        memset(b, 0, queryBuffer.length);
+
+        if (b == (void *) -1)
+        {
+            std::cerr<<"Mmap failed\n";
+            return -3;
+        }
+
+        start = std::shared_ptr<char>(b, D(queryBuffer.length));
+
+        buffers.push_back(std::make_shared<Buffer>(queryBuffer.length, start));
     }
-
-    // use a pointer to point to the newly created queryBuffer
-    // map the memory address of the device to an address in memory
-
-    char *b = (char*) mmap(location, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
-        this -> fd, queryBuffer.m.offset);
-    memset(b, 0, queryBuffer.length);
-
-    if (b == (void *) -1)
-    {
-        std::cerr<<"Mmap failed\n";
-        return -3;
-    }
-
-    frame_buffer = std::shared_ptr<char>(b, D(queryBuffer.length));
-
     return 0;
 }
 
-int Camera::capture(uframe_ptr &frame, void *location=NULL)
+int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
 {
     std::cout << "Capture\n";
 
     if (!ready_to_capture)
     {
         std::cout << "Preparing to capture...\n";
-        requestBuffer(location); // buffer in the device memory
+        requestBuffers(1, location); // buffer in the device memory
 
         info_buffer = std::make_shared<v4l2_buffer>();
         memset(info_buffer.get(), 0, sizeof(info_buffer));
-        info_buffer -> type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        info_buffer -> type = buffer_type;
         info_buffer -> memory = V4L2_MEMORY_MMAP;
-        info_buffer -> index = 0;
+        info_buffer -> index = buffer_no;
 
         // Activate streaming
-        int type = info_buffer -> type;
-        if(xioctl(this -> fd, VIDIOC_STREAMON, &type) < 0)
+        if(xioctl(this -> fd, VIDIOC_STREAMON, &buffer_type) < 0)
         {
             std::cerr << "Could not start streaming\n";
             return -1;
@@ -248,8 +256,11 @@ int Camera::capture(uframe_ptr &frame, void *location=NULL)
         return -3;
     }
 
+    buffers[buffer_no].get() -> bytesused = info_buffer -> bytesused;
+
+
     // Frames get written after dequeuing the buffer
-    frame -> assignFrame(frame_buffer, info_buffer, this -> width, this -> height);
+    frame -> assignFrame(buffers[buffer_no], this -> width, this -> height);
 
     return 0;
 }

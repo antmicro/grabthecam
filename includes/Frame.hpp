@@ -18,7 +18,7 @@ public:
     * @param height Image height in pixels
     */
     Frame(int _raw_frame_dtype);
-    schar_ptr location;
+    sbuf_ptr buffer;
     int width;
     int height;
 
@@ -40,15 +40,14 @@ public:
     * Preprocess the raw frame
     */
     virtual int retreive() = 0;
-    void assignFrame(schar_ptr &location, sbuf_ptr &info, int width, int heigh);
-    
+    void assignFrame(sbuf_ptr &_buffer, int _width, int _heigh);
+
 
 protected:
     Mat processed_frame;
     int raw_frame_dtype;
 
 private:
-    sbuf_ptr info;
     Mat raw_frame;
 
     /*

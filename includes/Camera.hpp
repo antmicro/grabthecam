@@ -16,6 +16,7 @@
 #include "consts.hpp"
 #include "Frame.hpp"
 
+
 class Camera
 {
 public:
@@ -69,7 +70,7 @@ public:
     * @param frame Frame object, where all frame details will be stored
     * @param location [Optional] Pointer to a place in memory where frame should be placed
     */
-    int capture(uframe_ptr &frame, void *location);
+    int capture(uframe_ptr &frame, int buffer_no=0, void *location=NULL);
 
     /**
     *Returns the camera's file descriptor
@@ -77,12 +78,15 @@ public:
     int getFd();
 
 private:
+
     int fd;
     int width;
     int height;
     bool ready_to_capture;
-    schar_ptr frame_buffer;
-    sbuf_ptr info_buffer;
+    //schar_ptr frame_buffer;
+    svbuf_ptr info_buffer;
+    int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    std::vector<sbuf_ptr> buffers;
 
     /*
     * Get current width and height
@@ -92,5 +96,5 @@ private:
     /*
     * Ask the device for the buffer to capture frames and allocate memory for it
     */
-    int requestBuffer(void *location);
+    int requestBuffers(int n=1, void *location=NULL);
 };

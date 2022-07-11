@@ -6,9 +6,9 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 {
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>();
-    camera.capture(frame, NULL);
-    //
-    // // save frames
+    camera.capture(frame);
+    
+    // save frames
     // filename << "../out/raw_" << i << ".raw";
     // if (frame -> rawFrameToFile(filename.str()) < 0)
     // {
@@ -20,7 +20,7 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     // }
     // filename.str("");
     // filename.clear();
-    //
+
     filename << "../out/processed_" << i << ".png";
     if (frame -> processedFrameToFile(filename.str()) < 0)
     {
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[])
     }
 
     frame = nullptr;
-    
+
     camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
 
     grab_frame(frame, camera, 2);

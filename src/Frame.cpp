@@ -3,23 +3,21 @@
 
 Frame::Frame(int _raw_frame_dtype) : height(0), width(0)
 {
-    this -> location = nullptr;
-    this -> info = nullptr;
     this -> raw_frame = Mat();
     this -> raw_frame_dtype = _raw_frame_dtype;
+    buffer = nullptr;
 }
 
-void Frame::assignFrame(schar_ptr &_location, sbuf_ptr &_info, int _width, int _height)
+void Frame::assignFrame(sbuf_ptr &_buffer, int _width, int _height)
 {
     this -> height = _height;
     this -> width = _width;
-    this -> location = _location;
-    this -> info = _info;
+    this -> buffer = _buffer;
 }
 
 void Frame::rawToCvMat()
 {
-    raw_frame = Mat(height, width, raw_frame_dtype, (void*)location.get());
+    raw_frame = Mat(height, width, raw_frame_dtype, (void*)(buffer -> start.get()));
 }
 
 cv::Mat Frame::getRawFrame()
@@ -50,8 +48,8 @@ int Frame::rawFrameToFile(std::string filename)
     {
         return -1;
     }
-
-    outFile.write(location.get(), (double)info.get()->bytesused);
+    
+    outFile.write(buffer -> start.get(), buffer -> bytesused);
     outFile.close();
 
     if(outFile.fail())
