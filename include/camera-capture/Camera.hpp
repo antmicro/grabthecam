@@ -16,7 +16,11 @@
 #include "consts.hpp"
 #include "Frame.hpp"
 
-
+/**
+* Handles capturing frames from v4l cameras
+* Provides C++ API for changing camera settings and capturing frames
+* See how it can be used in src/example.cpp
+*/
 class Camera
 {
 public:
@@ -25,11 +29,6 @@ public:
     * @param filename Path to the camera file
     */
     Camera(std::string filename);
-
-    /**
-    * Close the camera
-    */
-    ~Camera();
 
     /**
     * Obtain information about driver and hardware capabilities.
@@ -65,36 +64,47 @@ public:
     /**
     * Captures a frame
     *
-    * Fetches a frame (to the specific location) and optionally saves it to file.
+    * Fetch a frame (to the specific location) and optionally save it to file.
     *
     * @param frame Frame object, where all frame details will be stored
-    * @param location [Optional] Pointer to a place in memory where frame should be placed
+    * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
+    * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
+       address at which to create the mapping. For more information see mmap documentation.
+    * @return Returns 0 on succes. When the stream could not be started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
     */
     int capture(uframe_ptr &frame, int buffer_no=0, void *location=NULL);
 
     /**
-    *Returns the camera's file descriptor
+    * Returns the camera's file descriptor
+    * @returns Camera file descriptor
     */
     int getFd();
 
+    /**
+    * Close the camera
+    */
+    ~Camera();
+
 private:
-
-    int fd;
-    int width;
-    int height;
-    bool ready_to_capture;
-    //schar_ptr frame_buffer;
-    svbuf_ptr info_buffer;
-    int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    std::vector<sbuf_ptr> buffers;
-
-    /*
-    * Get current width and height
+    /**
+    * Get current width and height. Sets relevants fields.
+    * @return Returns 0 on success, -1 on failure (in this case, errno is set appropriately – like in VIDIOC_G_FMT).
     */
     int updateFormat();
 
     /*
-    * Ask the device for the buffer to capture frames and allocate memory for it
+    * Ask the device for the buffers to capture frames and allocate memory for them
+    * @param n Number of buffers to allocate
+    * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
+       address at which to create the mapping. For more information see mmap documentation.
     */
     int requestBuffers(int n=1, void *location=NULL);
+
+    int fd; ///< A file descriptor to the opened camera
+    int width; ///< Frame width in pixels, currently set on the camera
+    int height; ///< Frame width in pixels, currently set on the camera
+    bool ready_to_capture; ///< If the buffers are allocated and stream is active
+    svbuf_ptr info_buffer; ///< Informations about the current buffer
+    int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
+    std::vector<sbuf_ptr> buffers;  ///< Currently allocated buffers
 };

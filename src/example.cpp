@@ -1,5 +1,5 @@
-#include "../includes/Camera.hpp"
-#include "../includes/YuvFrame.hpp"
+#include "Camera.hpp"
+#include "YuvFrame.hpp"
 #include <sstream>
 
 void grab_frame(uframe_ptr &frame, Camera &camera, int i)
@@ -7,10 +7,10 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>();
     camera.capture(frame);
-    
+
     // save frames
     // filename << "../out/raw_" << i << ".raw";
-    // if (frame -> rawFrameToFile(filename.str()) < 0)
+    // if (frame->rawFrameToFile(filename.str()) < 0)
     // {
     //     std::cout << "FAILED to save raw frame\n";
     // }
@@ -22,7 +22,7 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     // filename.clear();
 
     filename << "../out/processed_" << i << ".png";
-    if (frame -> processedFrameToFile(filename.str()) < 0)
+    if (frame->processedFrameToFile(filename.str()) < 0)
     {
         std::cout << "FAILED to save processed frame\n";
     }

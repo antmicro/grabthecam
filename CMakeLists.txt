@@ -7,10 +7,11 @@ add_executable(${PROJECT_NAME}
     src/example.cpp
 )
 
-include_directories(include)
+include_directories(include/camera-capture)
 
 add_library(Camera
-    src/Camera.cpp)
+    src/Camera.cpp
+)
 add_library(Frame
     src/Frame.cpp
 )

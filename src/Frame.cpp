@@ -1,23 +1,23 @@
-#include "../includes/Frame.hpp"
+#include "Frame.hpp"
 
 
 Frame::Frame(int _raw_frame_dtype) : height(0), width(0)
 {
-    this -> raw_frame = Mat();
-    this -> raw_frame_dtype = _raw_frame_dtype;
-    buffer = nullptr;
+    this->raw_frame = cv::Mat();
+    this->raw_frame_dtype = _raw_frame_dtype;
+    info = nullptr;
 }
 
-void Frame::assignFrame(sbuf_ptr &_buffer, int _width, int _height)
+void Frame::assignFrame(sbuf_ptr &_info, int _width, int _height)
 {
-    this -> height = _height;
-    this -> width = _width;
-    this -> buffer = _buffer;
+    this->height = _height;
+    this->width = _width;
+    this->info = _info;
 }
 
 void Frame::rawToCvMat()
 {
-    raw_frame = Mat(height, width, raw_frame_dtype, (void*)(buffer -> start.get()));
+    raw_frame = cv::Mat(height, width, raw_frame_dtype, (void*)(info->start.get()));
 }
 
 cv::Mat Frame::getRawFrame()
@@ -30,7 +30,7 @@ cv::Mat Frame::getRawFrame()
     return raw_frame;
 }
 
-Mat Frame::getProcessedFrame()
+cv::Mat Frame::getProcessedFrame()
 {
     if (processed_frame.empty())
     {
@@ -48,8 +48,8 @@ int Frame::rawFrameToFile(std::string filename)
     {
         return -1;
     }
-    
-    outFile.write(buffer -> start.get(), buffer -> bytesused);
+
+    outFile.write(info->start.get(), info->bytesused);
     outFile.close();
 
     if(outFile.fail())

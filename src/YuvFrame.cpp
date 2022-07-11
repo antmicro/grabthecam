@@ -1,4 +1,4 @@
-# include "../includes/YuvFrame.hpp"
+# include "YuvFrame.hpp"
 
 YuvFrame::YuvFrame() : Frame(CV_8UC2)
 {}

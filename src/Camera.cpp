@@ -1,4 +1,4 @@
-#include "../includes/Camera.hpp"
+#include "Camera.hpp"
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -16,7 +16,7 @@ Camera::Camera(std::string filename)
 {
     //Open the device
 
-    this -> fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
+    this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
     if(fd < 0)
     {
         std::cerr << "Failed to open the device\n";
@@ -30,13 +30,13 @@ Camera::~Camera()
 
     // end streaming
     xioctl(fd, VIDIOC_STREAMOFF, &buffer_type);
-    v4l2_close(this -> fd);
+    v4l2_close(this->fd);
 }
 
 int Camera::getCapabilities(ucap_ptr &cap)
 {
     // Ask the device if it can capture frames
-    if (xioctl(this -> fd, VIDIOC_QUERYCAP, cap.get()) < 0)
+    if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
     {
         if (errno == EINVAL)
         {
@@ -56,7 +56,7 @@ int Camera::set(int property, double value)
     v4l2_control c;
     c.id = property;
     c.value = value;
-    if(v4l2_ioctl(this -> fd, VIDIOC_S_CTRL, &c) != 0)
+    if(v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) != 0)
     {
         if (errno == EINVAL)
         {
@@ -75,7 +75,7 @@ int Camera::get(int property, double &value)
 {
     v4l2_control c;
     c.id = property;
-    if(v4l2_ioctl(this -> fd, VIDIOC_G_CTRL, &c) != 0)
+    if(v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) != 0)
     {
         if (errno == EINVAL)
         {
@@ -110,9 +110,9 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
         requestBuffer.type = buffer_type;
         requestBuffer.memory = V4L2_MEMORY_MMAP;
 
-        if (xioctl(this -> fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
+        if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
         {
-            std::cerr << "Emptying Buffer failed " << errno << std::endl;
+            std::cerr << "Emptying buffer failed " << errno << std::endl;
             return -1;
         }
 
@@ -128,15 +128,15 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     fmt.fmt.pix.height = height;
     fmt.fmt.pix.pixelformat = pixelformat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    if (xioctl(this -> fd, VIDIOC_S_FMT, &fmt) < 0)
+    if (xioctl(this->fd, VIDIOC_S_FMT, &fmt) < 0)
     {
         std::cerr << "VIDIOC_S_FMT failed " << errno <<std::endl;
         return -1;
     }
     else
     {
-	    updateFormat();
-        std::cout << "Format set to " << this -> height << "x" << this -> width << std::endl;
+        updateFormat();
+        std::cout << "Format set to " << this->height << "x" << this->width << std::endl;
     }
 
     return 0;
@@ -147,14 +147,14 @@ int Camera::updateFormat()
     v4l2_format fmt = {0};
     fmt.type = buffer_type;
 
-    if (xioctl(this -> fd, VIDIOC_G_FMT, &fmt) < 0)
+    if (xioctl(this->fd, VIDIOC_G_FMT, &fmt) < 0)
     {
         std::cerr << "VIDIOC_G_FMT failed" << errno << std::endl;
         return -1;
     }
 
-    this -> height = fmt.fmt.pix.height;
-    this -> width = fmt.fmt.pix.width;
+    this->height = fmt.fmt.pix.height;
+    this->width = fmt.fmt.pix.width;
 
     return 0;
 }
@@ -164,15 +164,15 @@ int Camera::requestBuffers(int n, void *location)
 {
     buffers.clear();
 
-    // Request Buffer from the device, which will be used for capturing frames
+    // Request FrameBufferInfo from the device, which will be used for capturing frames
     struct v4l2_requestbuffers requestBuffer = {0};
     requestBuffer.count = n;
     requestBuffer.type = buffer_type;
     requestBuffer.memory = V4L2_MEMORY_MMAP;
 
-    if (xioctl(this -> fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
+    if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
     {
-        std::cerr << "Requesting Buffer failed" << errno << std::endl;
+        std::cerr << "Requesting buffer failed" << errno << std::endl;
         return -1;
     }
 
@@ -191,7 +191,7 @@ int Camera::requestBuffers(int n, void *location)
         queryBuffer.memory = V4L2_MEMORY_MMAP;
         queryBuffer.index = i;
 
-        if(xioctl(this -> fd, VIDIOC_QUERYBUF, &queryBuffer) < 0)
+        if(xioctl(this->fd, VIDIOC_QUERYBUF, &queryBuffer) < 0)
         {
             std::cerr << "Device did not return the queryBuffer information\n";
             return -2;
@@ -199,9 +199,9 @@ int Camera::requestBuffers(int n, void *location)
 
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
-
+        // TODO: change location (to matrix?)
         char *b = (char*) mmap(location, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
-            this -> fd, queryBuffer.m.offset);
+            this->fd, queryBuffer.m.offset);
         memset(b, 0, queryBuffer.length);
 
         if (b == (void *) -1)
@@ -210,9 +210,9 @@ int Camera::requestBuffers(int n, void *location)
             return -3;
         }
 
-        start = std::shared_ptr<char>(b, D(queryBuffer.length));
+        start = std::shared_ptr<char>(b, MMAPDeleter(queryBuffer.length));
 
-        buffers.push_back(std::make_shared<Buffer>(queryBuffer.length, start));
+        buffers.push_back(std::make_shared<FrameBufferInfo>(queryBuffer.length, start));
     }
     return 0;
 }
@@ -221,6 +221,8 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
 {
     std::cout << "Capture\n";
 
+    info_buffer->index = buffer_no;
+
     if (!ready_to_capture)
     {
         std::cout << "Preparing to capture...\n";
@@ -228,12 +230,11 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
 
         info_buffer = std::make_shared<v4l2_buffer>();
         memset(info_buffer.get(), 0, sizeof(info_buffer));
-        info_buffer -> type = buffer_type;
-        info_buffer -> memory = V4L2_MEMORY_MMAP;
-        info_buffer -> index = buffer_no;
+        info_buffer->type = buffer_type;
+        info_buffer->memory = V4L2_MEMORY_MMAP;
 
         // Activate streaming
-        if(xioctl(this -> fd, VIDIOC_STREAMON, &buffer_type) < 0)
+        if(xioctl(this->fd, VIDIOC_STREAMON, &buffer_type) < 0)
         {
             std::cerr << "Could not start streaming\n";
             return -1;
@@ -253,14 +254,14 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
     if(xioctl(fd, VIDIOC_DQBUF, info_buffer.get()) < 0)
     {
         std::cerr << "Could not dequeue the buffer, VIDIOC_DQBUF\n";
-        return -3;
+        return -2;
     }
 
-    buffers[buffer_no].get() -> bytesused = info_buffer -> bytesused;
+    buffers[buffer_no].get() -> bytesused = info_buffer->bytesused;
 
 
     // Frames get written after dequeuing the buffer
-    frame -> assignFrame(buffers[buffer_no], this -> width, this -> height);
+    frame->assignFrame(buffers[buffer_no], this->width, this->height);
 
     return 0;
 }
