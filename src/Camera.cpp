@@ -160,8 +160,21 @@ int Camera::updateFormat()
 }
 
 
-int Camera::requestBuffers(int n, void *location)
+int Camera::requestBuffers(int n, std::vector<void*> locations)
 {
+    if (locations.size() == 0)
+    {
+        for (int i=0 ; i < n; i++)
+        {
+            locations.push_back(NULL);
+        }
+    }
+    else if (locations.size() != n)
+    {
+        std::cout << "Invalid locations length";
+        return -4; //IDEA: Maybe exceptions will be better
+    }
+    
     buffers.clear();
 
     // Request FrameBufferInfo from the device, which will be used for capturing frames
@@ -199,8 +212,7 @@ int Camera::requestBuffers(int n, void *location)
 
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
-        // TODO: change location (to matrix?)
-        char *b = (char*) mmap(location, queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
+        char *b = (char*) mmap(locations[i], queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
             this->fd, queryBuffer.m.offset);
         memset(b, 0, queryBuffer.length);
 
@@ -217,16 +229,15 @@ int Camera::requestBuffers(int n, void *location)
     return 0;
 }
 
-int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
+int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
+//TODO: overload for number_of_buffers and locations
 {
     std::cout << "Capture\n";
-
-    info_buffer->index = buffer_no;
 
     if (!ready_to_capture)
     {
         std::cout << "Preparing to capture...\n";
-        requestBuffers(1, location); // buffer in the device memory
+        requestBuffers(number_of_buffers, locations); // buffers in the device memory
 
         info_buffer = std::make_shared<v4l2_buffer>();
         memset(info_buffer.get(), 0, sizeof(info_buffer));
@@ -242,6 +253,8 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, void *location )
 
         ready_to_capture = true;
     }
+
+    info_buffer->index = buffer_no;
 
     // Queue the buffer
     if(xioctl(fd, VIDIOC_QBUF, info_buffer.get()) < 0)

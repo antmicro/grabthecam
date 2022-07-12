@@ -72,7 +72,8 @@ public:
        address at which to create the mapping. For more information see mmap documentation.
     * @return Returns 0 on succes. When the stream could not be started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
     */
-    int capture(uframe_ptr &frame, int buffer_no=0, void *location=NULL);
+    //TODO: change docs
+    int capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
     * Returns the camera's file descriptor
@@ -98,7 +99,8 @@ private:
     * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
        address at which to create the mapping. For more information see mmap documentation.
     */
-    int requestBuffers(int n=1, void *location=NULL);
+    //TODO: update docs
+    int requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
 
     int fd; ///< A file descriptor to the opened camera
     int width; ///< Frame width in pixels, currently set on the camera

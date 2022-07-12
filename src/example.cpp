@@ -6,7 +6,7 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 {
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>();
-    camera.capture(frame);
+    camera.capture(frame, 1, 2);
 
     // save frames
     // filename << "../out/raw_" << i << ".raw";

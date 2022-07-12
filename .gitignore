@@ -37,4 +37,6 @@
 
 # Build directory
 build/
+
+# Saved pictures
 out/
