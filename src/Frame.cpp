@@ -43,7 +43,7 @@ int Frame::rawFrameToFile(std::string filename)
 {
     // Write the data out to file
     std::ofstream outFile;
-    outFile.open(filename, std::ios::binary | std::ios::app);
+    outFile.open(filename, std::ios::binary);
     if(outFile.fail())
     {
         return -1;

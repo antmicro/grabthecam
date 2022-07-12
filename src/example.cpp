@@ -9,18 +9,19 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     camera.capture(frame, 1, 2);
 
     // save frames
-    // filename << "../out/raw_" << i << ".raw";
-    // if (frame->rawFrameToFile(filename.str()) < 0)
-    // {
-    //     std::cout << "FAILED to save raw frame\n";
-    // }
-    // else
-    // {
-    //     std::cout << "Raw frame saved\n";
-    // }
-    // filename.str("");
-    // filename.clear();
 
+    filename << "../out/raw_" << i << ".raw";
+    if (frame->rawFrameToFile(filename.str()) < 0)
+    {
+        std::cout << "FAILED to save raw frame\n";
+    }
+    else
+    {
+    	std::cout << "Raw frame saved\n";
+    }
+    filename.str("");
+    filename.clear();
+   
     filename << "../out/processed_" << i << ".png";
     if (frame->processedFrameToFile(filename.str()) < 0)
     {
@@ -64,8 +65,8 @@ int main(int argc, char const *argv[])
 
     // get frame
     uframe_ptr frame;
-
-    for (int i = 0; i < 10; i++)
+   
+    for (int i = 0; i < 3; i++)
     {
         grab_frame(frame, camera, i);
     }
@@ -74,7 +75,7 @@ int main(int argc, char const *argv[])
 
     camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
 
-    grab_frame(frame, camera, 2);
+    grab_frame(frame, camera, 5);
 
     return 0;
 }

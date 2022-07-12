@@ -76,6 +76,14 @@ public:
     int capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
+     * Overload provided for convenience.
+     *
+     * For more information see capture.
+     */
+     
+    int capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
+
+    /**
     * Returns the camera's file descriptor
     * @returns Camera file descriptor
     */

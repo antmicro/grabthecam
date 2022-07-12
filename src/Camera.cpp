@@ -229,8 +229,12 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
     return 0;
 }
 
+int Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations)
+{
+    capture(frame, buffer_no, locations.size(), locations);
+}
+
 int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
-//TODO: overload for number_of_buffers and locations
 {
     std::cout << "Capture\n";
 
