@@ -69,18 +69,18 @@ public:
     * @param frame Frame object, where all frame details will be stored
     * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
     * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
-       address at which to create the mapping. For more information see mmap documentation.
+    address at which to create the mapping. For more information see mmap documentation.
     * @return Returns 0 on succes. When the stream could not be started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
     */
     //TODO: change docs
     int capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
-     * Overload provided for convenience.
-     *
-     * For more information see capture.
-     */
-     
+    * Overload provided for convenience.
+    *
+    * For more information see capture.
+    */
+
     int capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
 
     /**
@@ -105,7 +105,7 @@ private:
     * Ask the device for the buffers to capture frames and allocate memory for them
     * @param n Number of buffers to allocate
     * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
-       address at which to create the mapping. For more information see mmap documentation.
+    address at which to create the mapping. For more information see mmap documentation.
     */
     //TODO: update docs
     int requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
@@ -116,5 +116,5 @@ private:
     bool ready_to_capture; ///< If the buffers are allocated and stream is active
     svbuf_ptr info_buffer; ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
-    std::vector<sbuf_ptr> buffers;  ///< Currently allocated buffers
+    std::vector<fbi_ptr> buffers;  ///< Currently allocated buffers
 };

@@ -174,7 +174,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
         std::cout << "Invalid locations length";
         return -4; //IDEA: Maybe exceptions will be better
     }
-    
+
     buffers.clear();
 
     // Request FrameBufferInfo from the device, which will be used for capturing frames
@@ -212,6 +212,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
+	/*
         char *b = (char*) mmap(locations[i], queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
             this->fd, queryBuffer.m.offset);
         memset(b, 0, queryBuffer.length);
@@ -223,15 +224,17 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
         }
 
         start = std::shared_ptr<char>(b, MMAPDeleter(queryBuffer.length));
-
-        buffers.push_back(std::make_shared<FrameBufferInfo>(queryBuffer.length, start));
+	*/
+        buffers.push_back(std::make_shared<FrameBufferInfo>(
+            locations[i], queryBuffer.length, fd, queryBuffer.m.offset
+        ));
     }
     return 0;
 }
 
 int Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations)
 {
-    capture(frame, buffer_no, locations.size(), locations);
+    return capture(frame, buffer_no, locations.size(), locations);
 }
 
 int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)

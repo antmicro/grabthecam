@@ -29,7 +29,7 @@ public:
     * @param width Image width in pixels
     * @param height Image height in pixels
     */
-    void assignFrame(sbuf_ptr &_info, int _width, int _heigh);
+    void assignFrame(fbi_ptr &_info, int _width, int _heigh);
 
     /**
     * Save raw frame to file
@@ -58,7 +58,7 @@ public:
     */
     cv::Mat getProcessedFrame();
 
-    sbuf_ptr info; ///< Information about frame buffer's location
+    fbi_ptr info; ///< Information about frame buffer's location
     int width; ///< Image width in pixels
     int height; ///< Image height in pixels
 
