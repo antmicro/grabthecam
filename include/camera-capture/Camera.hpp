@@ -56,7 +56,7 @@ public:
     /**
     * Set the camera frame format to a given value
     * @param width Image width in pixels
-    * @param heigh Image height in pixels
+    * @param height Image height in pixels
     * @param pixelformat The pixel format or type of compression (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
     */
     int setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
@@ -68,11 +68,10 @@ public:
     *
     * @param frame Frame object, where all frame details will be stored
     * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
-    * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
-    address at which to create the mapping. For more information see mmap documentation.
-    * @return Returns 0 on succes. When the stream could not be started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
+    * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the number of currently allocated buffers, the stream is restarted and new buffers are allocated.
+    * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create the mapping. For more information see mmap documentation.
+    * @return Returns 0 on succes. When the stream could not be stopped or started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
     */
-    //TODO: change docs
     int capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
@@ -80,7 +79,6 @@ public:
     *
     * For more information see capture.
     */
-
     int capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
 
     /**
@@ -104,12 +102,17 @@ private:
     /*
     * Ask the device for the buffers to capture frames and allocate memory for them
     * @param n Number of buffers to allocate
-    * @param location Pointer to a place in memory where frame should be placed. If not provided, the kernel chooses the (page-aligned)
-    address at which to create the mapping. For more information see mmap documentation.
+    * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information see mmap documentation.
     */
-    //TODO: update docs
     int requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
 
+    /**
+     * Stop streaming, free the buffers and mark camera as not ready to capture
+     *
+     * @return Returns 0 on success, -1 on failure.
+     */
+    int stopStreaming();
+    
     int fd; ///< A file descriptor to the opened camera
     int width; ///< Frame width in pixels, currently set on the camera
     int height; ///< Frame width in pixels, currently set on the camera

@@ -91,7 +91,7 @@ int Camera::get(int property, double &value)
     return 0;
 }
 
-int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
+int Camera::stopStreaming()
 {
     if (ready_to_capture)
     {
@@ -119,7 +119,15 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
         buffers.clear();
         ready_to_capture = false;
     }
+    return 0;
+}
 
+int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
+{
+    if (stopStreaming() < 0)
+    {
+        return -1;
+    }
     //Set Image format
     v4l2_format fmt = {0};
 
@@ -212,19 +220,6 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
-	/*
-        char *b = (char*) mmap(locations[i], queryBuffer.length, PROT_READ | PROT_WRITE, MAP_SHARED,
-            this->fd, queryBuffer.m.offset);
-        memset(b, 0, queryBuffer.length);
-
-        if (b == (void *) -1)
-        {
-            std::cerr<<"Mmap failed\n";
-            return -3;
-        }
-
-        start = std::shared_ptr<char>(b, MMAPDeleter(queryBuffer.length));
-	*/
         buffers.push_back(std::make_shared<FrameBufferInfo>(
             locations[i], queryBuffer.length, fd, queryBuffer.m.offset
         ));
@@ -240,6 +235,14 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locatio
 int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
 {
     std::cout << "Capture\n";
+    //TODO: test
+    if (ready_to_capture && buffers.size() != number_of_buffers)
+    {
+        if (stopStreaming() < 0)
+        {
+            return -1;
+        }
+    }
 
     if (!ready_to_capture)
     {

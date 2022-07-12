@@ -16,7 +16,7 @@ public:
     * Frame constructor
     * @param raw_frame_dtype OpenCV primitive datatype, in which values in raw_frame will be stored
     */
-    Frame(int _raw_frame_dtype);
+    Frame(int raw_frame_dtype);
 
     /**
     * Preprocess the raw frame
@@ -29,7 +29,7 @@ public:
     * @param width Image width in pixels
     * @param height Image height in pixels
     */
-    void assignFrame(fbi_ptr &_info, int _width, int _heigh);
+    void assignFrame(fbi_ptr &info, int width, int height);
 
     /**
     * Save raw frame to file

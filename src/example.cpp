@@ -1,15 +1,16 @@
 #include "Camera.hpp"
 #include "YuvFrame.hpp"
+#include "BayerFrame.hpp"
 #include <sstream>
 
 void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 {
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>();
-    camera.capture(frame, 1, 2);
+    //frame = std::make_unique<BayerFrame>(cv::COLOR_BayerBG2BGR);
+    camera.capture(frame, 0, 1);
 
     // save frames
-
     filename << "../out/raw_" << i << ".raw";
     if (frame->rawFrameToFile(filename.str()) < 0)
     {
@@ -21,7 +22,7 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     }
     filename.str("");
     filename.clear();
-   
+
     filename << "../out/processed_" << i << ".png";
     if (frame->processedFrameToFile(filename.str()) < 0)
     {
@@ -65,7 +66,7 @@ int main(int argc, char const *argv[])
 
     // get frame
     uframe_ptr frame;
-   
+
     for (int i = 0; i < 3; i++)
     {
         grab_frame(frame, camera, i);
