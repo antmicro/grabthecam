@@ -17,9 +17,10 @@ Camera::Camera(std::string filename)
     //Open the device
 
     this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
+
     if(fd < 0)
     {
-        std::cerr << "Failed to open the device\n";
+        throw CameraException("Failed to open the camera");
     }
     ready_to_capture = false;
 }
@@ -38,14 +39,7 @@ int Camera::getCapabilities(ucap_ptr &cap)
     // Ask the device if it can capture frames
     if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
     {
-        if (errno == EINVAL)
-        {
-            std::cerr <<  "This is not a V4L2 device\n";
-        }
-        else
-        {
-            std::cerr << "Error in ioctl VIDIOC_QUERYCAP\n";
-        }
+        throw CameraException("Error in VIDIOC_QUERYCAP. See errno for more information");
         return -1;
     }
     return 0;
@@ -58,14 +52,7 @@ int Camera::set(int property, double value)
     c.value = value;
     if(v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) != 0)
     {
-        if (errno == EINVAL)
-        {
-            std::cerr << "Invalid query \"" << property << " = " << value << "\"" << std::endl;
-        }
-        else
-        {
-            std::cerr << "Setting property failed errno:" << errno << std::endl;
-        }
+        throw CameraException("Setting property failed. See errno and VIDEOC_S_CTRL docs for more information");
         return -1;
     }
     return 0;
@@ -77,14 +64,7 @@ int Camera::get(int property, double &value)
     c.id = property;
     if(v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) != 0)
     {
-        if (errno == EINVAL)
-        {
-            std::cerr << "Not a valid property " << property << std::endl;
-        }
-        else
-        {
-            std::cerr << "Getting property failed errno:" << errno << std::endl;
-        }
+        throw CameraException("Getting property failed. See errno and VIDEOC_G_CTRL docs for more information");
         return -1;
     }
     value = c.value;
@@ -98,7 +78,7 @@ int Camera::stopStreaming()
         // stop streaming
         int type = buffer_type;
         if(xioctl(fd, VIDIOC_STREAMOFF, &type) < 0){
-            std::cerr << ("Could not end streaming, VIDIOC_STREAMOFF");
+            throw CameraException("Could not end streaming. See errno and VIDEOC_STREAMOFF docs for more information");
             return -1;
         }
 
@@ -112,7 +92,7 @@ int Camera::stopStreaming()
 
         if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
         {
-            std::cerr << "Emptying buffer failed " << errno << std::endl;
+            throw CameraException("Emptying buffers failed. See errno and VIDEOC_REQBUFS docs for more information");
             return -1;
         }
 
@@ -124,10 +104,8 @@ int Camera::stopStreaming()
 
 int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
 {
-    if (stopStreaming() < 0)
-    {
-        return -1;
-    }
+    stopStreaming();
+
     //Set Image format
     v4l2_format fmt = {0};
 
@@ -138,7 +116,7 @@ int Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixe
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
     if (xioctl(this->fd, VIDIOC_S_FMT, &fmt) < 0)
     {
-        std::cerr << "VIDIOC_S_FMT failed " << errno <<std::endl;
+        throw CameraException("Setting format failed. See errno and VIDEOC_S_FMT docs for more information");
         return -1;
     }
     else
@@ -157,7 +135,7 @@ int Camera::updateFormat()
 
     if (xioctl(this->fd, VIDIOC_G_FMT, &fmt) < 0)
     {
-        std::cerr << "VIDIOC_G_FMT failed" << errno << std::endl;
+        throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
         return -1;
     }
 
@@ -179,8 +157,8 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
     }
     else if (locations.size() != n)
     {
-        std::cout << "Invalid locations length";
-        return -4; //IDEA: Maybe exceptions will be better
+        throw CameraException("Invalid locations lenght. It should be equal to n");
+        return -1;
     }
 
     buffers.clear();
@@ -193,7 +171,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
     if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
     {
-        std::cerr << "Requesting buffer failed" << errno << std::endl;
+        throw CameraException("Requesting buffer failed. See errno and VIDEOC_REQBUFS docs for more information.");
         return -1;
     }
 
@@ -214,8 +192,8 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
         if(xioctl(this->fd, VIDIOC_QUERYBUF, &queryBuffer) < 0)
         {
-            std::cerr << "Device did not return the queryBuffer information\n";
-            return -2;
+            throw CameraException("Device did not return the queryBuffer information. See errno and VIDEOC_QUERYBUF docs for more information.");
+            return -1;
         }
 
         // use a pointer to point to the newly created queryBuffer
@@ -238,10 +216,7 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std
     //TODO: test
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
-        if (stopStreaming() < 0)
-        {
-            return -1;
-        }
+        stopStreaming();
     }
 
     if (!ready_to_capture)
@@ -257,7 +232,7 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std
         // Activate streaming
         if(xioctl(this->fd, VIDIOC_STREAMON, &buffer_type) < 0)
         {
-            std::cerr << "Could not start streaming\n";
+            throw CameraException("Could not start streaming. See errno and VIDEOC_STREAMON docs for more information.");
             return -1;
         }
 
@@ -269,14 +244,14 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std
     // Queue the buffer
     if(xioctl(fd, VIDIOC_QBUF, info_buffer.get()) < 0)
     {
-        std::cerr << "Could not queue buffer " << errno;
+        throw CameraException("Could not queue the buffer. See errno and VIDEOC_QBUF docs for more information.");
         return -2;
     }
 
     // Dequeue the buffer
     if(xioctl(fd, VIDIOC_DQBUF, info_buffer.get()) < 0)
     {
-        std::cerr << "Could not dequeue the buffer, VIDIOC_DQBUF\n";
+        throw CameraException("Could not dequeue the buffer. See errno and VIDEOC_DQBUF docs for more information.");
         return -2;
     }
 

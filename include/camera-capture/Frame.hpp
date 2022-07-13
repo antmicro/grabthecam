@@ -3,6 +3,7 @@
 #include <opencv2/core/mat.hpp>
 #include <fstream>
 #include <opencv2/imgcodecs.hpp> //imwrite
+#include <filesystem> // checking if the directory exists
 
 /**
 * Handles captured frames
