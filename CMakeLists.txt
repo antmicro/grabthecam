@@ -10,6 +10,9 @@ add_executable(${PROJECT_NAME}
 include_directories(include/camera-capture)
 include_directories(include/camera-capture/frames/)
 
+add_library(FrameBufferInfo
+    src/FrameBufferInfo.cpp
+)
 add_library(Camera
     src/Camera.cpp
 )
@@ -27,6 +30,7 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 target_link_libraries(${PROJECT_NAME} PRIVATE Camera)
 target_link_libraries(${PROJECT_NAME} PRIVATE Frame)
 target_link_libraries(${PROJECT_NAME} PRIVATE Frames)
+target_link_libraries(${PROJECT_NAME} PRIVATE FrameBufferInfo)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC v4l2)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenCV_LIBS})

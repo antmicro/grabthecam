@@ -1,7 +1,6 @@
 #pragma once
+
 #include <fcntl.h>
-#include <fstream>
-#include <iostream>
 #include <libv4l2.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
@@ -10,6 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
