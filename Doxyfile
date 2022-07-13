@@ -1,0 +1,7 @@
+PROJECT_NAME     = Camera-capture
+OUTPUT_DIRECTORY = html
+WARNINGS         = YES
+INPUT            = src include/camera-capture
+FILE_PATTERNS    = *.cpp *.hpp
+INCLUDE_PATH     = include/camera-capture
+HAVE_DOT = NO
