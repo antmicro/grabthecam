@@ -11,13 +11,12 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
     camera.capture(frame, 0, 1);
 
     // save frames
-    /*
     filename << "../out/raw_" << i << ".raw";
     frame->rawFrameToFile(filename.str());
     std::cout << "Raw frame saved\n";
     filename.str("");
     filename.clear();
-*/
+
     filename << "../out/processed_" << i << ".png";
     frame->processedFrameToFile(filename.str());
     std::cout << "Processed frame saved\n";

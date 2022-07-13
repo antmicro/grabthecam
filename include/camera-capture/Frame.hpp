@@ -6,9 +6,10 @@
 #include <filesystem> // checking if the directory exists
 
 /**
-* Handles captured frames
+* Handles captured frames.
+*
 * Provides C++ API for converting images to openCV matrices, preprocessing them and saving to file.
-* See how it can be used in src/example.cpp
+* See how it can be used in src/example.cpp.
 */
 class Frame
 {
@@ -22,7 +23,7 @@ public:
     /**
     * Preprocess the raw frame
     */
-    virtual int retreive() = 0;
+    virtual void retreive() = 0;
 
     /**
     * Assign information about captured frame
@@ -34,18 +35,19 @@ public:
 
     /**
     * Save raw frame to file
+    *
+    * On error throws CameraException
     * @param filename Where the frame will be saved
-    * @return Returns 0, or -1 if error occured.
     */
-    int rawFrameToFile(std::string filename);
+    void rawFrameToFile(std::string filename);
 
     /**
     * Save processed frame to file
+    *
+    * On error throws CameraException
     * @param filename Where the frame will be saved
-    * @return Returns 0, or -1 if error occured.
     */
-
-    int processedFrameToFile(std::string filename);
+    void processedFrameToFile(std::string filename);
 
     /**
     * Get raw frame as openCV matrix

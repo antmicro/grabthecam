@@ -14,7 +14,6 @@ public:
 
     /**
     * Convert YUV to RGB
-    * @return Returns 0
     */
-    int retreive() override;
+    void retreive() override;
 };

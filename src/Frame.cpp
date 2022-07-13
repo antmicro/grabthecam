@@ -39,7 +39,7 @@ cv::Mat Frame::getProcessedFrame()
     return processed_frame;
 }
 
-int Frame::rawFrameToFile(std::string filename)
+void Frame::rawFrameToFile(std::string filename)
 {
     // check if directory exists
     std::filesystem::path path = filename;
@@ -51,16 +51,13 @@ int Frame::rawFrameToFile(std::string filename)
     if(outFile.fail())
     {
         throw CameraException("Cannot open the file to save. Check if file exists and you have permission to edit it.");
-        return -1;
     }
 
     outFile.write((char*)(info->start), info->bytesused);
     outFile.close();
-
-    return 0;
 }
 
-int Frame::processedFrameToFile(std::string filename)
+void Frame::processedFrameToFile(std::string filename)
 {
     // check if directory exists
     std::filesystem::path path = filename;
@@ -69,8 +66,5 @@ int Frame::processedFrameToFile(std::string filename)
     if (!cv::imwrite(filename, getProcessedFrame()))
     {
         throw CameraException("Cannot save the processed Frame");
-        return -1;
     }
-
-    return 0;
 }

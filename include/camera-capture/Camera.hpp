@@ -26,66 +26,73 @@ class Camera
 public:
     /**
     * Open the Camera
+    *
+    * On error throws CameraException
     * @param filename Path to the camera file
     */
     Camera(std::string filename);
 
     /**
     * Obtain information about driver and hardware capabilities.
+    *
+    * On error throws CameraException
     * @param cap Structure which will be filled by the driver
-    * @return Returns 0, or -1 if error occured (in which case, errno is set appropriately – like in VIDIOC_QUERYCAP).
     */
-    int getCapabilities(ucap_ptr &cap);
+    void getCapabilities(ucap_ptr &cap);
 
     /**
     * Set the camera setting to a given value
+    *
+    * On error throws CameraException
     * @param property Ioctl code of the parameter to change
     * @param value Value for the parameter
-    * @return Returns 0, or -1 if error occured (in which case, errno is set appropriately – like in VIDIOC_S_CTRL).
     */
-    int set(int property, double value);
+    void set(int property, double value);
 
     /**
     * Get the camera setting value
+    *
+    * On error throws CameraException
     * @param property Ioctl code of the parameter
     * @param value Variable, which will be filled with value
-    * @return Returns 0, or -1 if error occured (in which case, errno is set appropriately – like in VIDIOC_G_CTRL).
     */
-    int get(int property, double &value);
+    void get(int property, double &value);
 
     /**
     * Set the camera frame format to a given value
+    *
+    * On error throws CameraException
     * @param width Image width in pixels
     * @param height Image height in pixels
     * @param pixelformat The pixel format or type of compression (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
     */
-    int setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
+    void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
 
     /**
     * Captures a frame
     *
     * Fetch a frame (to the specific location) and optionally save it to file.
+    * On error throws CameraException
     *
     * @param frame Frame object, where all frame details will be stored
     * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
     * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the number of currently allocated buffers, the stream is restarted and new buffers are allocated.
     * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create the mapping. For more information see mmap documentation.
-    * @return Returns 0 on succes. When the stream could not be stopped or started, returns -1. When a problem with queueing/ dequeueing buffer appears, returns -2.
     */
-    int capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
+    void capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
     * Overload provided for convenience.
     *
     * For more information see capture.
     */
-    int capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
+    void capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
 
     /**
     * Returns the camera's file descriptor
     * @returns Camera file descriptor
     */
-    int getFd();
+    int getFd() {return fd;}
 
     /**
     * Close the camera
@@ -95,24 +102,27 @@ public:
 private:
     /**
     * Get current width and height. Sets relevants fields.
-    * @return Returns 0 on success, -1 on failure (in this case, errno is set appropriately – like in VIDIOC_G_FMT).
+    *
+    * On error throws CameraException
     */
-    int updateFormat();
+    void updateFormat();
 
     /*
     * Ask the device for the buffers to capture frames and allocate memory for them
+    *
+    * On error throws CameraException
     * @param n Number of buffers to allocate
     * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information see mmap documentation.
     */
-    int requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
+    void requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
-     * Stop streaming, free the buffers and mark camera as not ready to capture
-     *
-     * @return Returns 0 on success, -1 on failure.
-     */
-    int stopStreaming();
-    
+    * Stop streaming, free the buffers and mark camera as not ready to capture
+    *
+    * On error throws CameraException
+    */
+    void stopStreaming();
+
     int fd; ///< A file descriptor to the opened camera
     int width; ///< Frame width in pixels, currently set on the camera
     int height; ///< Frame width in pixels, currently set on the camera

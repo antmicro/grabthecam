@@ -48,19 +48,26 @@ public:
 /**
  * Exception to handle errors from camera Class
 */
-
 class CameraException : public std::exception
 {
 public:
+    /**
+    * Constructor
+    *
+    * @param msg Exception description
+    */
     CameraException(std::string msg): msg(msg){}
 
+    /**
+     * Returns the explanatory string.
+     */
     const char * what() const throw() override
     {
         return msg.c_str();
     }
 
 private:
-    std::string msg;
+    std::string msg; ///< description
 };
 
 using fbi_ptr = std::shared_ptr<FrameBufferInfo>;
