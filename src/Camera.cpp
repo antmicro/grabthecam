@@ -103,19 +103,7 @@ int Camera::stopStreaming()
         }
 
         // free buffers
-        //TODO: request 0 buffers
-
-        struct v4l2_requestbuffers requestBuffer = {0};
-        requestBuffer.count = 0;
-        requestBuffer.type = buffer_type;
-        requestBuffer.memory = V4L2_MEMORY_MMAP;
-
-        if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
-        {
-            std::cerr << "Emptying buffer failed " << errno << std::endl;
-            return -1;
-        }
-
+	requestBuffers(0);
         buffers.clear();
         ready_to_capture = false;
     }
@@ -206,7 +194,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
     for (int i=0; i < requestBuffer.count; i++)
     {
-	    memset (&queryBuffer, 0, sizeof(queryBuffer));
+	memset (&queryBuffer, 0, sizeof(queryBuffer));
 
         queryBuffer.type = buffer_type;
         queryBuffer.memory = V4L2_MEMORY_MMAP;
@@ -235,7 +223,6 @@ int Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locatio
 int Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
 {
     std::cout << "Capture\n";
-    //TODO: test
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
         if (stopStreaming() < 0)
