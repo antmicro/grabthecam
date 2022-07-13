@@ -1,6 +1,6 @@
-#include "Camera.hpp"
-#include "YuvFrame.hpp"
-#include "BayerFrame.hpp"
+#include "camera-capture/camera.hpp"
+#include "camera-capture/frames/yuvframe.hpp"
+#include "camera-capture/frames/bayerframe.hpp"
 #include <sstream>
 
 void grab_frame(uframe_ptr &frame, Camera &camera, int i)

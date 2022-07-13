@@ -4,7 +4,7 @@
 #include <opencv2/imgcodecs.hpp> //imwrite
 #include "opencv2/core/core_c.h"
 
-#include "Frame.hpp"
+#include "camera-capture/frame.hpp"
 
 
 /**

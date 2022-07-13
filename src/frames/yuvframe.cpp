@@ -1,4 +1,4 @@
-# include "YuvFrame.hpp"
+#include "camera-capture/frames/yuvframe.hpp"
 
 YuvFrame::YuvFrame() : Frame(CV_8UC2)
 {}

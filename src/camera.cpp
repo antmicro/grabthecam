@@ -1,4 +1,4 @@
-#include "Camera.hpp"
+#include "camera-capture/camera.hpp"
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -160,7 +160,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 {
     if (locations.size() == 0)
     {
-        for (int i=0 ; i < n; i++)
+        for (int i = 0 ; i < n; i++)
         {
             locations.push_back(NULL);
         }
@@ -181,7 +181,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
 
     if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
     {
-        std::cerr << "Requesting buffer failed" << errno << std::endl;
+        std::cerr << "Requesting buffer failed " << errno << std::endl;
         return -1;
     }
 
@@ -192,7 +192,7 @@ int Camera::requestBuffers(int n, std::vector<void*> locations)
     struct v4l2_buffer queryBuffer;
     schar_ptr start;
 
-    for (int i=0; i < requestBuffer.count; i++)
+    for (int i = 0; i < requestBuffer.count; i++)
     {
 	memset (&queryBuffer, 0, sizeof(queryBuffer));
 

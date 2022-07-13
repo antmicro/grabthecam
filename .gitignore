@@ -44,5 +44,4 @@ out/
 # misc
 compile_commands.json
 html/
-tests/
-
+.cache/

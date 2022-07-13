@@ -6,8 +6,8 @@
 #include <filesystem> // checking if the directory exists
 #include <fstream>
 
-#include "consts.hpp"
-#include "FrameBufferInfo.hpp"
+#include "camera-capture/consts.hpp"
+#include "camera-capture/framebufferinfo.hpp"
 
 
 /**
