@@ -15,6 +15,29 @@ void Frame::assignFrame(fbi_ptr &_info, int _width, int _height)
     this->info = _info;
 }
 
+void Frame::readFromFile(std::string filename, int width, int height)
+{
+
+    char* buffer;
+    std::ifstream t;
+    int length;
+    t.open(filename);
+
+    t.seekg(0, std::ios::end);    // go to the end
+    length = t.tellg();           // report location (this is the length)
+    t.seekg(0, std::ios::beg);    // go back to the beginning
+    buffer = new char[length];    // allocate memory for a buffer of appropriate dimension
+    t.read(buffer, length);       // read the whole file into the buffer
+
+    raw_frame = cv::Mat(height, width, CV_8UC1, buffer);
+    height = height;
+    width = width;
+    std::cout << length << " " << raw_frame.total() * raw_frame.elemSize() << " " << raw_frame.step[0] * raw_frame.rows <<std::endl;
+    info = std::make_shared<FrameBufferInfo>(buffer, raw_frame.total() * raw_frame.elemSize());
+
+    std::cout << raw_frame.total() << std::endl;
+}
+
 void Frame::rawToCvMat()
 {
     raw_frame = cv::Mat(height, width, raw_frame_dtype, info->start);

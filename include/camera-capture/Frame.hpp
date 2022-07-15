@@ -4,6 +4,7 @@
 #include <fstream>
 #include <opencv2/imgcodecs.hpp> //imwrite
 #include <filesystem> // checking if the directory exists
+#include "framebufferinfo.hpp"
 
 /**
 * Handles captured frames.
@@ -33,6 +34,7 @@ public:
     */
     void assignFrame(fbi_ptr &info, int width, int height);
 
+    void readFromFile(std::string filename, int width, int height);
     /**
     * Save raw frame to file
     *

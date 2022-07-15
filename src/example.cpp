@@ -26,6 +26,12 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 
 int main(int argc, char const *argv[])
 {
+    BayerFrame bf = BayerFrame(cv::COLOR_BayerBG2BGR);
+    bf.readFromFile("../res/RGGB_1000_750", 1000, 750);
+    bf.rawFrameToFile("../out/raw_bayer.raw");
+    bf.processedFrameToFile("../out/processed_bayer.png");
+
+/*
     // get camera capabilities
     ucap_ptr cap = std::make_unique<v4l2_capability>();
 
@@ -65,6 +71,6 @@ int main(int argc, char const *argv[])
     camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
 
     grab_frame(frame, camera, 5);
-
+*/
     return 0;
 }
