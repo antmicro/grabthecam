@@ -1,7 +1,44 @@
-#include "../includes/Camera.hpp"
+#include "camera-capture/camera.hpp"
+#include "camera-capture/frames/yuvframe.hpp"
+#include "camera-capture/frames/bayerframe.hpp"
+#include <sstream>
+
+void grab_frame(uframe_ptr &frame, Camera &camera, int i)
+{
+    std::stringstream filename;
+    frame = std::make_unique<YuvFrame>();
+    //frame = std::make_unique<BayerFrame>(cv::COLOR_BayerBG2BGR);
+    camera.capture(frame, 0, 1);
+
+    // save frames
+    filename << "../out/raw_" << i << ".raw";
+    if (frame->rawFrameToFile(filename.str()) < 0)
+    {
+        std::cout << "FAILED to save raw frame\n";
+    }
+    else
+    {
+    	std::cout << "Raw frame saved\n";
+    }
+    filename.str("");
+    filename.clear();
+
+    filename << "../out/processed_" << i << ".png";
+    if (frame->processedFrameToFile(filename.str()) < 0)
+    {
+        std::cout << "FAILED to save processed frame\n";
+    }
+    else
+    {
+        std::cout << "Processed frame saved\n";
+    }
+    filename.str("");
+    filename.clear();
+}
 
 int main(int argc, char const *argv[])
 {
+    // get camera capabilities
     ucap_ptr cap = std::make_unique<v4l2_capability>();
 
     Camera camera("/dev/video0");
@@ -19,19 +56,27 @@ int main(int argc, char const *argv[])
         exit (EXIT_FAILURE);
     }
 
-    camera.setFormat(1024, 1024, V4L2_PIX_FMT_MJPEG);
+    // adjust camera settings
+    camera.setFormat(960, 720, V4L2_PIX_FMT_YYUV);
     camera.set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
 
     double val;
     camera.get(V4L2_CID_EXPOSURE_AUTO, val);
     std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
 
-    uchar_ptr photo;
-    int imageSize;
+    // get frame
+    uframe_ptr frame;
 
-    camera.capture(photo, &imageSize, NULL, "../out/photo.jpg");
+    for (int i = 0; i < 3; i++)
+    {
+        grab_frame(frame, camera, i);
+    }
 
-    // munmap(photo.get(), imageSize);//to pewnie powinno być w destruktorze unique_ptr buffer i stąd segfault?
-    camera.release();
+    frame = nullptr;
+
+    camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
+
+    grab_frame(frame, camera, 5);
+
     return 0;
 }

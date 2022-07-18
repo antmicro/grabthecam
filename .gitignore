@@ -37,3 +37,11 @@
 
 # Build directory
 build/
+
+# Saved pictures
+out/
+
+# misc
+compile_commands.json
+html/
+.cache/
