@@ -1,4 +1,4 @@
-#include "camera-capture/camera.hpp"
+#include "camera-capture/cameracapture.hpp"
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -12,7 +12,7 @@ int xioctl(int fd, int request, void *arg)
 }
 
 
-Camera::Camera(std::string filename)
+CameraCapture::CameraCapture(std::string filename)
 {
     //Open the device
 
@@ -25,7 +25,7 @@ Camera::Camera(std::string filename)
     ready_to_capture = false;
 }
 
-Camera::~Camera()
+CameraCapture::~CameraCapture()
 {
     std::cout << "closing...\n";
 
@@ -34,7 +34,7 @@ Camera::~Camera()
     v4l2_close(this->fd);
 }
 
-void Camera::getCapabilities(ucap_ptr &cap)
+void CameraCapture::getCapabilities(ucap_ptr &cap)
 {
     // Ask the device if it can capture frames
     if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
@@ -43,7 +43,7 @@ void Camera::getCapabilities(ucap_ptr &cap)
     }
 }
 
-void Camera::set(int property, double value)
+void CameraCapture::set(int property, double value)
 {
     v4l2_control c;
     c.id = property;
@@ -54,7 +54,7 @@ void Camera::set(int property, double value)
     }
 }
 
-void Camera::get(int property, double &value)
+void CameraCapture::get(int property, double &value)
 {
     v4l2_control c;
     c.id = property;
@@ -65,7 +65,7 @@ void Camera::get(int property, double &value)
     value = c.value;
 }
 
-void Camera::stopStreaming()
+void CameraCapture::stopStreaming()
 {
     if (ready_to_capture)
     {
@@ -82,7 +82,7 @@ void Camera::stopStreaming()
     }
 }
 
-void Camera::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
+void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
 {
     stopStreaming();
 
@@ -105,7 +105,7 @@ void Camera::setFormat(unsigned int width, unsigned int height, unsigned int pix
     }
 }
 
-void Camera::updateFormat()
+void CameraCapture::updateFormat()
 {
     v4l2_format fmt = {0};
     fmt.type = buffer_type;
@@ -120,7 +120,7 @@ void Camera::updateFormat()
 }
 
 
-void Camera::requestBuffers(int n, std::vector<void*> locations)
+void CameraCapture::requestBuffers(int n, std::vector<void*> locations)
 {
     if (locations.size() == 0)
     {
@@ -175,12 +175,12 @@ void Camera::requestBuffers(int n, std::vector<void*> locations)
     }
 }
 
-void Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations)
+void CameraCapture::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations)
 {
     capture(frame, buffer_no, locations.size(), locations);
 }
 
-void Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
+void CameraCapture::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
 {
     std::cout << "Capture\n";
     if (ready_to_capture && buffers.size() != number_of_buffers)

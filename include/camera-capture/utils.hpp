@@ -10,15 +10,15 @@
 
 /**
  * Exception to handle errors from camera Class
-*/
+ */
 class CameraException : public std::exception
 {
 public:
     /**
-    * Constructor
-    *
-    * @param msg Exception description
-    */
+     * Constructor
+     *
+     * @param msg Exception description
+     */
     CameraException(std::string msg): msg(msg){}
 
     /**

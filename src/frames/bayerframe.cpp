@@ -3,7 +3,7 @@
 BayerFrame::BayerFrame(int code, int nChannels) : Frame(CV_8UC1), code(code), nChannels(nChannels)
 {}
 
-void BayerFrame::retreive()
+void BayerFrame::retrieve()
 {
     std::cout << "Bayer\n";
     processed_frame = cv::Mat(height, width, CV_8UC3);

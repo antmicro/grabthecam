@@ -1,9 +1,9 @@
-#include "camera-capture/camera.hpp"
+#include "camera-capture/cameracapture.hpp"
 #include "camera-capture/frames/yuvframe.hpp"
 #include "camera-capture/frames/bayerframe.hpp"
 #include <sstream>
 
-void grab_frame(uframe_ptr &frame, Camera &camera, int i)
+void grab_frame(uframe_ptr &frame, CameraCapture &camera, int i)
 {
     std::stringstream filename;
     frame = std::make_unique<YuvFrame>(cv::COLOR_YUV2BGR_YUY2);
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
     // get camera capabilities
     ucap_ptr cap = std::make_unique<v4l2_capability>();
 
-    Camera camera("/dev/video0");
+    CameraCapture camera("/dev/video0");
     camera.getCapabilities(cap);
 
     if (!(cap->capabilities & V4L2_CAP_VIDEO_CAPTURE))

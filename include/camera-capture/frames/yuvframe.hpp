@@ -8,9 +8,9 @@
 
 
 /**
-* Class for processing YUY2 Frames
-* For more information see Frame documentation
-*/
+ * Class for processing YUY2 Frames
+ * For more information see Frame documentation
+ */
 class YuvFrame : public Frame
 {
 public:
@@ -21,9 +21,9 @@ public:
     YuvFrame(int code);
 
     /**
-    * Convert YUV to RGB
-    */
-    void retreive() override;
+     * Convert YUV to RGB
+     */
+    void retrieve() override;
 
     int code; ///< OpenCV's Color space conversion code (see: constructor)
 };

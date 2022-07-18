@@ -8,9 +8,9 @@
 
 
 /**
-* Class for processing Bayer Frames
-* For more information see Frame documentation
-*/
+ * Class for processing Bayer Frames
+ * For more information see Frame documentation
+ */
 class BayerFrame : public Frame
 {
 public:
@@ -23,10 +23,10 @@ public:
     BayerFrame(int code, int nChannels=0);
 
     /**
-    * Demosaicing
-    * @return Returns 0
-    */
-    void retreive() override;
+     * Demosaicing
+     * @return Returns 0
+     */
+    void retrieve() override;
 
     int code; ///< OpenCV's Color space conversion code (see: constructor)
     int nChannels; ///< number of channels in the destination image (see: constructor)

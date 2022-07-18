@@ -10,23 +10,23 @@ include_directories(
 	include
 )
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}-demo
     src/example.cpp
 )
 
 add_library(cameracapture
     src/framebufferinfo.cpp
-    src/camera.cpp
+    src/cameracapture.cpp
     src/frame.cpp
     src/frames/yuvframe.cpp
     src/frames/bayerframe.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME}-demo PRIVATE
     cameracapture
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME}-demo PUBLIC
     v4l2
     ${OpenCV_LIBS}
 )

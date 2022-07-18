@@ -56,7 +56,7 @@ cv::Mat Frame::getProcessedFrame()
 {
     if (processed_frame.empty())
     {
-        retreive();
+        retrieve();
     }
     return processed_frame;
 }
