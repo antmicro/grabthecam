@@ -24,7 +24,7 @@ public:
     */
     void retreive() override;
 
-    int code; ///< OpenCV Color space conversion code (see: constructor)
+    int code; ///< OpenCV's Color space conversion code (see: constructor)
     int nChannels; ///< number of channels in the destination image (see: constructor)
 };
 

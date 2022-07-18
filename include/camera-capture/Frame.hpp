@@ -34,7 +34,7 @@ public:
     */
     void assignFrame(fbi_ptr &info, int width, int height);
 
-    void readFromFile(std::string filename, int width, int height);
+    void readFromFile(std::string filename, int width, int height, int raw_frame_dtype);
     /**
     * Save raw frame to file
     *

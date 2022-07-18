@@ -1,6 +1,5 @@
 #include "Frame.hpp"
 
-
 Frame::Frame(int _raw_frame_dtype) : height(0), width(0)
 {
     this->raw_frame = cv::Mat();
@@ -15,27 +14,26 @@ void Frame::assignFrame(fbi_ptr &_info, int _width, int _height)
     this->info = _info;
 }
 
-void Frame::readFromFile(std::string filename, int width, int height)
+void Frame::readFromFile(std::string filename, int width, int height, int raw_frame_dtype)
 {
 
-    char* buffer;
+    void* buffer;
     std::ifstream t;
     int length;
-    t.open(filename);
+    t.open(filename, std::ios_base::in|std::ios_base::binary);
 
     t.seekg(0, std::ios::end);    // go to the end
     length = t.tellg();           // report location (this is the length)
     t.seekg(0, std::ios::beg);    // go back to the beginning
-    buffer = new char[length];    // allocate memory for a buffer of appropriate dimension
-    t.read(buffer, length);       // read the whole file into the buffer
+    buffer = malloc(length);      // allocate memory for a buffer of appropriate dimension
+    //TODO: free
+    t.read((char*)buffer, length);       // read the whole file into the buffer
 
-    raw_frame = cv::Mat(height, width, CV_8UC1, buffer);
+    raw_frame = cv::Mat(height, width, raw_frame_dtype, buffer);
     height = height;
     width = width;
     std::cout << length << " " << raw_frame.total() * raw_frame.elemSize() << " " << raw_frame.step[0] * raw_frame.rows <<std::endl;
     info = std::make_shared<FrameBufferInfo>(buffer, raw_frame.total() * raw_frame.elemSize());
-
-    std::cout << raw_frame.total() << std::endl;
 }
 
 void Frame::rawToCvMat()

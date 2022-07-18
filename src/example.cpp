@@ -6,7 +6,7 @@
 void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 {
     std::stringstream filename;
-    frame = std::make_unique<YuvFrame>();
+    frame = std::make_unique<YuvFrame>(cv::COLOR_YUV2BGR);
     //frame = std::make_unique<BayerFrame>(cv::COLOR_BayerBG2BGR);
     camera.capture(frame, 0, 1);
 
@@ -27,9 +27,14 @@ void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 int main(int argc, char const *argv[])
 {
     BayerFrame bf = BayerFrame(cv::COLOR_BayerBG2BGR);
-    bf.readFromFile("../res/RGGB_1000_750", 1000, 750);
+    bf.readFromFile("../res/RGGB_1000_750", 1000, 750, CV_8UC1);
     bf.rawFrameToFile("../out/raw_bayer.raw");
     bf.processedFrameToFile("../out/processed_bayer.png");
+
+    YuvFrame yf = YuvFrame(cv::COLOR_YUV2BGR_UYVY);
+    bf.readFromFile("../res/UYVY_1000_750", 1000, 750, CV_8UC1);
+    bf.rawFrameToFile("../out/raw_yuv.raw");
+    bf.processedFrameToFile("../out/processed_yuv.png");
 
 /*
     // get camera capabilities

@@ -10,7 +10,11 @@
 class YuvFrame : public Frame
 {
 public:
-    YuvFrame();
+    /**
+     * Constructor for Yuv frames
+     * @param code OpenCV's color space conversion code (see https://docs.opencv.org/4.5.2/d8/d01/group__imgproc__color__conversions.html#ga57261f12fccf872a2b2d66daf29d5bd0).
+     */
+    YuvFrame(int code);
 
     /**
     * Convert YUV to RGB
