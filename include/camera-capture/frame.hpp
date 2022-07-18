@@ -1,10 +1,16 @@
 #pragma once
-#include "consts.hpp"
+
 #include <opencv2/core/mat.hpp>
-#include <fstream>
 #include <opencv2/imgcodecs.hpp> //imwrite
 #include <filesystem> // checking if the directory exists
 #include "framebufferinfo.hpp"
+
+#include <filesystem> // checking if the directory exists
+#include <fstream>
+
+#include "camera-capture/consts.hpp"
+#include "camera-capture/framebufferinfo.hpp"
+
 
 /**
 * Handles captured frames.

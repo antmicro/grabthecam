@@ -1,12 +1,12 @@
-#include "Camera.hpp"
-#include "YuvFrame.hpp"
-#include "BayerFrame.hpp"
+#include "camera-capture/camera.hpp"
+#include "camera-capture/frames/yuvframe.hpp"
+#include "camera-capture/frames/bayerframe.hpp"
 #include <sstream>
 
 void grab_frame(uframe_ptr &frame, Camera &camera, int i)
 {
     std::stringstream filename;
-    frame = std::make_unique<YuvFrame>(cv::COLOR_YUV2BGR);
+    frame = std::make_unique<YuvFrame>(cv::COLOR_YUV2BGR_YUY2);
     //frame = std::make_unique<BayerFrame>(cv::COLOR_BayerBG2BGR);
     camera.capture(frame, 0, 1);
 
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
     bf.rawFrameToFile("../out/raw_yuv.raw");
     bf.processedFrameToFile("../out/processed_yuv.png");
 
-/*
+
     // get camera capabilities
     ucap_ptr cap = std::make_unique<v4l2_capability>();
 
@@ -76,6 +76,6 @@ int main(int argc, char const *argv[])
     camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
 
     grab_frame(frame, camera, 5);
-*/
+
     return 0;
 }

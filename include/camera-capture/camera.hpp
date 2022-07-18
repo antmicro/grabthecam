@@ -1,7 +1,6 @@
 #pragma once
+
 #include <fcntl.h>
-#include <fstream>
-#include <iostream>
 #include <libv4l2.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
@@ -10,11 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
-#include "consts.hpp"
-#include "Frame.hpp"
+#include "camera-capture/consts.hpp"
+#include "camera-capture/frame.hpp"
 
 /**
 * Handles capturing frames from v4l cameras
@@ -74,7 +76,7 @@ public:
     * Fetch a frame (to the specific location) and optionally save it to file.
     * On error throws CameraException
     *
-    * @param frame Frame object, where all frame details will be stored
+    * @param frame Pointer to the frame object, where all frame details will be stored
     * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
     * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the number of currently allocated buffers, the stream is restarted and new buffers are allocated.
     * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create the mapping. For more information see mmap documentation.

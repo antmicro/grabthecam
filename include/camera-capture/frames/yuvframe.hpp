@@ -1,7 +1,11 @@
-#include "Frame.hpp"
+#pragma once
+
 #include <opencv2/imgproc.hpp> //cvtColor
 #include <opencv2/imgcodecs.hpp> //imwrite
 #include "opencv2/core/core_c.h"
+
+#include "camera-capture/frame.hpp"
+
 
 /**
 * Class for processing YUY2 Frames
@@ -20,4 +24,6 @@ public:
     * Convert YUV to RGB
     */
     void retreive() override;
+
+    int code; ///< OpenCV's Color space conversion code (see: constructor)
 };

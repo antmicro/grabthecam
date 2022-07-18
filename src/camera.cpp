@@ -1,4 +1,4 @@
-#include "Camera.hpp"
+#include "camera-capture/camera.hpp"
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -76,18 +76,7 @@ void Camera::stopStreaming()
         }
 
         // free buffers
-        //TODO: request 0 buffers
-
-        struct v4l2_requestbuffers requestBuffer = {0};
-        requestBuffer.count = 0;
-        requestBuffer.type = buffer_type;
-        requestBuffer.memory = V4L2_MEMORY_MMAP;
-
-        if (xioctl(this->fd, VIDIOC_REQBUFS, &requestBuffer) < 0)
-        {
-            throw CameraException("Emptying buffers failed. See errno and VIDEOC_REQBUFS docs for more information");
-        }
-
+	    requestBuffers(0);
         buffers.clear();
         ready_to_capture = false;
     }
@@ -135,7 +124,7 @@ void Camera::requestBuffers(int n, std::vector<void*> locations)
 {
     if (locations.size() == 0)
     {
-        for (int i=0 ; i < n; i++)
+        for (int i = 0 ; i < n; i++)
         {
             locations.push_back(NULL);
         }
@@ -165,9 +154,9 @@ void Camera::requestBuffers(int n, std::vector<void*> locations)
     struct v4l2_buffer queryBuffer;
     schar_ptr start;
 
-    for (int i=0; i < requestBuffer.count; i++)
+    for (int i = 0; i < requestBuffer.count; i++)
     {
-	    memset (&queryBuffer, 0, sizeof(queryBuffer));
+	memset (&queryBuffer, 0, sizeof(queryBuffer));
 
         queryBuffer.type = buffer_type;
         queryBuffer.memory = V4L2_MEMORY_MMAP;
@@ -194,7 +183,6 @@ void Camera::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locati
 void Camera::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
 {
     std::cout << "Capture\n";
-    //TODO: test
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
         stopStreaming();

@@ -6,9 +6,8 @@ project(camera_capture VERSION 0.1)
 find_package( OpenCV REQUIRED )
 
 include_directories(
-    ${OpenCV_INCLUDE_DIRS}
-    include/camera-capture/
-    include/camera-capture/frames/
+	${OpenCV_INCLUDE_DIRS}
+	include
 )
 
 add_executable(${PROJECT_NAME}
@@ -17,10 +16,10 @@ add_executable(${PROJECT_NAME}
 
 add_library(cameracapture
     src/framebufferinfo.cpp
-    src/Camera.cpp
-    src/Frame.cpp
-    src/frames/YuvFrame.cpp
-    src/frames/BayerFrame.cpp
+    src/camera.cpp
+    src/frame.cpp
+    src/frames/yuvframe.cpp
+    src/frames/bayerframe.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

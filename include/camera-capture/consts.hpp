@@ -1,11 +1,12 @@
 #pragma once
-#include <memory>
-#include <cstring> //memset
-#include <iostream>
-#include <sys/mman.h>
+
 #include <linux/v4l2-common.h>
 #include <linux/v4l2-controls.h>
 #include <linux/videodev2.h>
+
+#include <iostream>
+#include <memory>
+
 
 /**
  * Exception to handle errors from camera Class
