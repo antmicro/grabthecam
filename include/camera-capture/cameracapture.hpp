@@ -18,6 +18,8 @@
 #include "camera-capture/utils.hpp"
 #include "camera-capture/rawframe.hpp"
 
+using fbi_ptr = std::shared_ptr<FrameBufferInfo>;
+
 /**
 * Handles capturing frames from v4l cameras
 * Provides C++ API for changing camera settings and capturing frames
@@ -40,7 +42,7 @@ public:
      * On error throws CameraException
      * @param cap Structure which will be filled by the driver
      */
-    void getCapabilities(ucap_ptr &cap);
+    void getCapabilities(std::unique_ptr<v4l2_capability> &cap);
 
     /**
      * Set the camera setting to a given value
@@ -129,7 +131,7 @@ private:
     int width; ///< Frame width in pixels, currently set on the camera
     int height; ///< Frame width in pixels, currently set on the camera
     bool ready_to_capture; ///< If the buffers are allocated and stream is active
-    svbuf_ptr info_buffer; ///< Informations about the current buffer
+    std::shared_ptr<v4l2_buffer> info_buffer; ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
     std::vector<fbi_ptr> buffers;  ///< Currently allocated buffers
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include "frame.hpp"
 
+using fbi_ptr = std::shared_ptr<FrameBufferInfo>;
+
 class RawFrame: public Frame
 {
 public:

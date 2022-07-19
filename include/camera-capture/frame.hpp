@@ -46,5 +46,3 @@ public:
 protected:
     cv::Mat matrix; ///< frame itself
 };
-
-using uframe_ptr = std::unique_ptr<Frame>;

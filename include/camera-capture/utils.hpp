@@ -32,7 +32,3 @@ public:
 private:
     std::string msg; ///< description
 };
-
-using ucap_ptr = std::unique_ptr<v4l2_capability>;
-using schar_ptr = std::shared_ptr<char>;
-using svbuf_ptr = std::shared_ptr<v4l2_buffer>;

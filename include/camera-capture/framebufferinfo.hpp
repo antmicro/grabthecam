@@ -34,5 +34,3 @@ public:
     void* start; ///< pointer to the memry location, where the buffer starts
     int size; ///< size of the buffer
 };
-
-using fbi_ptr = std::shared_ptr<FrameBufferInfo>;

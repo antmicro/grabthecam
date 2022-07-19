@@ -16,7 +16,7 @@ void grab_frame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i)
     filename.str("");
     filename.clear();
 
-    Raw2YuvConverter r2yconv = Raw2YuvConverter(cv::COLOR_YUV2BGR_YUY2, CV_8UC3);
+    auto r2yconv = Raw2YuvConverter(cv::COLOR_YUV2BGR_YUY2, CV_8UC3);
     Frame processed_frame = r2yconv.convert(frame.get());
 
     // save frame
@@ -31,7 +31,7 @@ int main(int argc, char const *argv[])
 {
     std::cout << "READ RAW IMAGE FROM FILE\n--------------------------\n";
 
-    Raw2BayerConverter r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR, CV_8UC3);
+    auto r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR, CV_8UC3);
     RawFrame bayerFrame;
     bayerFrame.readFromFile("../res/RGGB_1000_750", 1000, 750, CV_8UC1);
     bayerFrame.saveToFile("../out/raw_bayer.raw");
@@ -40,7 +40,7 @@ int main(int argc, char const *argv[])
 
     std::cout << "\nSET CAMERA\n--------------------------\n";
     // get camera capabilities
-    ucap_ptr cap = std::make_unique<v4l2_capability>();
+    auto cap = std::make_unique<v4l2_capability>();
 
     CameraCapture camera("/dev/video0");
     camera.getCapabilities(cap);

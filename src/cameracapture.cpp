@@ -34,7 +34,7 @@ CameraCapture::~CameraCapture()
     v4l2_close(this->fd);
 }
 
-void CameraCapture::getCapabilities(ucap_ptr &cap)
+void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap)
 {
     // Ask the device if it can capture frames
     if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
@@ -150,7 +150,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void*> locations)
     // ask for the requested buffers
 
     struct v4l2_buffer queryBuffer;
-    schar_ptr start;
+    std::shared_ptr<char> start;
 
     for (int i = 0; i < requestBuffer.count; i++)
     {
