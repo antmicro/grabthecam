@@ -39,7 +39,7 @@ public:
 
     /**
      * Get frame as openCV matrix
-     * @return Returns raw frame
+     * @return Returns frame matrix
      */
     virtual cv::Mat getMatrix();
 

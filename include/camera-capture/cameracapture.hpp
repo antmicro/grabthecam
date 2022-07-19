@@ -88,7 +88,9 @@ public:
     /**
      * Overload provided for convenience.
      *
-     * For more information see capture.
+     * @param frame Pointer to the RawFrame object, where all raw frame details will be stored
+     * @param buffer_no Index of camera buffer where the frame will be fetched.
+     * @param locations Vector of pointers to a memory location, where frames should be placed.
      */
     void capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void*> locations);
 

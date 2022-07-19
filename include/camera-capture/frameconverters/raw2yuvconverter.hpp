@@ -19,12 +19,12 @@ public:
      * @param code OpenCV's color space conversion code (see https://docs.opencv.org/4.5.2/d8/d01/group__imgproc__color__conversions.html#ga57261f12fccf872a2b2d66daf29d5bd0).
      * @param OpenCV's datatype for destination matrix (see https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
      */
-    Raw2YuvConverter(int code, int destMatType);
+    Raw2YuvConverter(int code, int destMatType=CV_8UC3);
 
     /**
      * Convert YUV to RGB
      */
-    Frame convert(Frame* src);
+    Frame convert(Frame* src) override;
 
     /**
      * Convert YUV to RGB

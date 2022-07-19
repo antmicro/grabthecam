@@ -21,7 +21,7 @@ public:
      * @param OpenCV's datatype for destination matrix (see https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
      * @param nChannels Number of channels in the destination image; if the parameter is 0, the number of the channels is derived automatically from raw matrix and code.
      */
-    Raw2BayerConverter(int code, int destMatType, int nChannels=0);
+    Raw2BayerConverter(int code, int destMatType=CV_8UC3, int nChannels=0);
 
     /**
      * Demosaicing

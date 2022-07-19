@@ -1,9 +1,13 @@
 #include "camera-capture/rawframe.hpp"
 
-RawFrame::RawFrame(int dtype) : height(0), width(0),  dtype(dtype)
+RawFrame::RawFrame(): height(0), width(0), dtype(-1), info(nullptr)
 {
-    this->matrix = cv::Mat();
-    info = nullptr;
+    matrix = cv::Mat();
+}
+
+RawFrame::RawFrame(int dtype) : height(0), width(0), info(nullptr), dtype(dtype)
+{
+    matrix = cv::Mat();
 }
 
 void RawFrame::assignFrame(fbi_ptr &_info, int _width, int _height)
@@ -15,7 +19,7 @@ void RawFrame::assignFrame(fbi_ptr &_info, int _width, int _height)
 
 void RawFrame::readFromFile(std::string filename, int width, int height, int mat_dtype)
 {
-
+    //WARNING: cannot be saved to file
     void* buffer;
     std::ifstream t;
     int length;
@@ -25,20 +29,23 @@ void RawFrame::readFromFile(std::string filename, int width, int height, int mat
     length = t.tellg();           // report location (this is the length)
     t.seekg(0, std::ios::beg);    // go back to the beginning
     buffer = malloc(length);      // allocate memory for a buffer of appropriate dimension
-    //TODO: free
-    t.read((char*)buffer, length);       // read the whole file into the buffer
+    t.read((char*)buffer, length);// read the whole file into the buffer
 
     dtype = mat_dtype;
     height = height;
     width = width;
     matrix = cv::Mat(height, width, dtype, buffer);
 
-    std::cout << length << " " << matrix.total() * matrix.elemSize() << " " << matrix.step[0] * matrix.rows <<std::endl;
     info = std::make_shared<FrameBufferInfo>(buffer, matrix.total() * matrix.elemSize());
+    // free(buffer);
 }
 
 void RawFrame::rawToCvMat()
 {
+    if (dtype == -1)
+    {
+        throw CameraException("Cannot convert to cv::Mat. Datatype was not provided.");
+    }
     matrix  = cv::Mat(height, width, dtype, info->start);
 }
 

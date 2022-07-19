@@ -21,10 +21,13 @@ public:
      * @param fd Camera file descriptor
      * @param offset Offset in fd. For more information see mmap documentation
      */
-    FrameBufferInfo(void* location, int size, int fd, int offset);
+    FrameBufferInfo(void *location, int size, int fd, int offset);
 
+    /**
+     * [TEMPORARY] Constructor used when reading raw frame from file. Doesn't map the memory, just sets needed variables.
+     */
+    FrameBufferInfo(void *location, int bytes): start(location), bytesused(bytes){}
 
-    FrameBufferInfo(void* location, int bytes): start(location), bytesused(bytes){}
     /**
      * Destructor. Unmaps the memory
      */

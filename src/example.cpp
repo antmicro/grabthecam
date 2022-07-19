@@ -1,9 +1,10 @@
+#include <sstream>
+
 #include "camera-capture/cameracapture.hpp"
 #include "camera-capture/frameconverters/raw2yuvconverter.hpp"
 #include "camera-capture/frameconverters/raw2bayerconverter.hpp"
-#include <sstream>
 
-void grab_frame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i)
+void grab_frame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i=0)
 {
     std::stringstream filename;
     frame = std::make_unique<RawFrame>(CV_8UC2);
@@ -16,7 +17,7 @@ void grab_frame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i)
     filename.str("");
     filename.clear();
 
-    auto r2yconv = Raw2YuvConverter(cv::COLOR_YUV2BGR_YUY2, CV_8UC3);
+    auto r2yconv = Raw2YuvConverter(cv::COLOR_YUV2BGR_YUY2);
     Frame processed_frame = r2yconv.convert(frame.get());
 
     // save frame
@@ -31,9 +32,9 @@ int main(int argc, char const *argv[])
 {
     std::cout << "READ RAW IMAGE FROM FILE\n--------------------------\n";
 
-    auto r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR, CV_8UC3);
+    auto r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR);
     RawFrame bayerFrame;
-    bayerFrame.readFromFile("../res/RGGB_1000_750", 1000, 750, CV_8UC1);
+    bayerFrame.readFromFile("../res/RGGB_1000_750", 1000, 750);
     bayerFrame.saveToFile("../out/raw_bayer.raw");
     Frame processed = r2bconv.convert(&bayerFrame);
     processed.saveToFile("../out/processed_bayer.png");
