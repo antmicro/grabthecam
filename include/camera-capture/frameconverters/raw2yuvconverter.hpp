@@ -4,26 +4,34 @@
 #include <opencv2/imgcodecs.hpp> //imwrite
 #include "opencv2/core/core_c.h"
 
-#include "camera-capture/frame.hpp"
+#include "camera-capture/frameconverter.hpp"
 
 
 /**
  * Class for processing YUY2 Frames
  * For more information see Frame documentation
  */
-class YuvFrame : public Frame
+class Raw2YuvConverter : public FrameConverter
 {
 public:
     /**
-     * Constructor for Yuv frames
+     * Constructor for Yuv converter
      * @param code OpenCV's color space conversion code (see https://docs.opencv.org/4.5.2/d8/d01/group__imgproc__color__conversions.html#ga57261f12fccf872a2b2d66daf29d5bd0).
+     * @param OpenCV's datatype for destination matrix (see https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
      */
-    YuvFrame(int code);
+    Raw2YuvConverter(int code, int destMatType);
 
     /**
      * Convert YUV to RGB
      */
-    void retrieve() override;
+    Frame convert(Frame* src);
 
+    /**
+     * Convert YUV to RGB
+     */
+    cv::Mat convertMatrix(cv::Mat src) override;
+
+private:
     int code; ///< OpenCV's Color space conversion code (see: constructor)
+    int destMatType; ///< OpenCV's datatype for destination matrix (see: constructor)
 };

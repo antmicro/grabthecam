@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.0)
 set(CMAKE_CXX_STANDARD 17)
 
-project(camera_capture VERSION 0.1)
+project(camera-capture VERSION 0.1)
 
 find_package( OpenCV REQUIRED )
 
@@ -18,8 +18,10 @@ add_library(cameracapture
     src/framebufferinfo.cpp
     src/cameracapture.cpp
     src/frame.cpp
-    src/frames/yuvframe.cpp
-    src/frames/bayerframe.cpp
+    src/rawframe.cpp
+    src/frameconverter.cpp
+    src/frameconverters/raw2bayerconverter.cpp
+    src/frameconverters/raw2yuvconverter.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}-demo PRIVATE

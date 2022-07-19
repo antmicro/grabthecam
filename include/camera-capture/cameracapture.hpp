@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "camera-capture/utils.hpp"
-#include "camera-capture/frame.hpp"
+#include "camera-capture/rawframe.hpp"
 
 /**
 * Handles capturing frames from v4l cameras
@@ -76,19 +76,19 @@ public:
      * Fetch a frame (to the specific location) and optionally save it to file.
      * On error throws CameraException
      *
-     * @param frame Pointer to the frame object, where all frame details will be stored
+     * @param frame Pointer to the RawFrame object, where all raw frame details will be stored
      * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
      * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the number of currently allocated buffers, the stream is restarted and new buffers are allocated.
      * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create the mapping. For more information see mmap documentation.
      */
-    void capture(uframe_ptr &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
+    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
 
     /**
      * Overload provided for convenience.
      *
      * For more information see capture.
      */
-    void capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations);
+    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void*> locations);
 
     /**
      * Returns the camera's file descriptor

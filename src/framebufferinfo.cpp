@@ -12,6 +12,5 @@ FrameBufferInfo::FrameBufferInfo(void* location, int size, int fd, int offset): 
 
 FrameBufferInfo::~FrameBufferInfo()
 {
-    std::cout << "deleter " << size << std::endl;
     munmap(start, size);
 }

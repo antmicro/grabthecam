@@ -147,8 +147,6 @@ void CameraCapture::requestBuffers(int n, std::vector<void*> locations)
         throw CameraException("Requesting buffer failed. See errno and VIDEOC_REQBUFS docs for more information.");
     }
 
-    std::cout << "Reqbuf " << requestBuffer.count << std::endl; //if < 2 insufficient?
-
     // ask for the requested buffers
 
     struct v4l2_buffer queryBuffer;
@@ -175,14 +173,14 @@ void CameraCapture::requestBuffers(int n, std::vector<void*> locations)
     }
 }
 
-void CameraCapture::capture(uframe_ptr &frame, int buffer_no, std::vector<void*> locations)
+void CameraCapture::capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void*> locations)
 {
     capture(frame, buffer_no, locations.size(), locations);
 }
 
-void CameraCapture::capture(uframe_ptr &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
+void CameraCapture::capture(std::unique_ptr<RawFrame> &frame, int buffer_no, int number_of_buffers, std::vector<void*> locations)
 {
-    std::cout << "Capture\n";
+    // std::cout << "Capture\n";
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
         stopStreaming();
