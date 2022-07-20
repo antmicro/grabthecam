@@ -1,9 +1,6 @@
 #include "camera-capture/frame.hpp"
 
-cv::Mat Frame::getMatrix()
-{
-    return matrix;
-}
+cv::Mat Frame::getMatrix() { return matrix; }
 
 void Frame::saveToFile(std::string filename)
 {

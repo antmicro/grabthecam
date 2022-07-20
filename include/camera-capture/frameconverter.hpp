@@ -14,7 +14,7 @@ public:
     /**
      * Convert the Frame from one format to another
      */
-    virtual Frame convert(Frame* src);
+    virtual Frame convert(Frame *src);
 
     /**
      * Convert the matrix with frame from one format to another

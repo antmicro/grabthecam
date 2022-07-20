@@ -1,14 +1,8 @@
 #include "camera-capture/rawframe.hpp"
 
-RawFrame::RawFrame(): height(0), width(0), dtype(-1), info(nullptr)
-{
-    matrix = cv::Mat();
-}
+RawFrame::RawFrame() : height(0), width(0), dtype(-1), info(nullptr) { matrix = cv::Mat(); }
 
-RawFrame::RawFrame(int dtype) : height(0), width(0), info(nullptr), dtype(dtype)
-{
-    matrix = cv::Mat();
-}
+RawFrame::RawFrame(int dtype) : height(0), width(0), info(nullptr), dtype(dtype) { matrix = cv::Mat(); }
 
 void RawFrame::assignFrame(fbi_ptr &_info, int _width, int _height)
 {
@@ -19,17 +13,17 @@ void RawFrame::assignFrame(fbi_ptr &_info, int _width, int _height)
 
 void RawFrame::readFromFile(std::string filename, int width, int height, int mat_dtype)
 {
-    //WARNING: cannot be saved to file
-    void* buffer;
+    // WARNING: cannot be saved to file
+    void *buffer;
     std::ifstream t;
     int length;
-    t.open(filename, std::ios_base::in|std::ios_base::binary);
+    t.open(filename, std::ios_base::in | std::ios_base::binary);
 
-    t.seekg(0, std::ios::end);    // go to the end
-    length = t.tellg();           // report location (this is the length)
-    t.seekg(0, std::ios::beg);    // go back to the beginning
-    buffer = malloc(length);      // allocate memory for a buffer of appropriate dimension
-    t.read((char*)buffer, length);// read the whole file into the buffer
+    t.seekg(0, std::ios::end);      // go to the end
+    length = t.tellg();             // report location (this is the length)
+    t.seekg(0, std::ios::beg);      // go back to the beginning
+    buffer = malloc(length);        // allocate memory for a buffer of appropriate dimension
+    t.read((char *)buffer, length); // read the whole file into the buffer
 
     dtype = mat_dtype;
     height = height;
@@ -46,7 +40,7 @@ void RawFrame::rawToCvMat()
     {
         throw CameraException("Cannot convert to cv::Mat. Datatype was not provided.");
     }
-    matrix  = cv::Mat(height, width, dtype, info->start);
+    matrix = cv::Mat(height, width, dtype, info->start);
 }
 
 cv::Mat RawFrame::getMatrix()
@@ -65,13 +59,13 @@ void RawFrame::saveToFile(std::string filename)
     std::filesystem::create_directories(path.parent_path());
 
     // Write the data out to file
-    std::ofstream outFile;
-    outFile.open(filename, std::ios::binary);
-    if(outFile.fail())
+    std::ofstream out_file;
+    out_file.open(filename, std::ios::binary);
+    if (out_file.fail())
     {
         throw CameraException("Cannot open the file to save. Check if file exists and you have permission to edit it.");
     }
 
-    outFile.write((char*)(info->start), info->bytesused);
-    outFile.close();
+    out_file.write((char *)(info->start), info->bytesused);
+    out_file.close();
 }

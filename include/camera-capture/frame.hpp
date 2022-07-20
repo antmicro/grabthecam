@@ -1,13 +1,12 @@
 #pragma once
 
-#include <opencv2/core/mat.hpp>
-#include <opencv2/imgcodecs.hpp> //imwrite
 #include <filesystem> // checking if the directory exists
 #include <fstream>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/imgcodecs.hpp> //imwrite
 
-#include "camera-capture/utils.hpp"
 #include "camera-capture/framebufferinfo.hpp"
-
+#include "camera-capture/utils.hpp"
 
 /**
  * Handles frames.
@@ -21,13 +20,13 @@ public:
     /**
      * Constructor
      */
-    Frame(){}
+    Frame() {}
 
     /**
      * Constructor
      * @param matrix Frame itself
      */
-    Frame(cv::Mat matrix): matrix(matrix){}
+    Frame(cv::Mat matrix) : matrix(matrix) {}
 
     /**
      * Save frame to file

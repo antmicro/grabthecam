@@ -7,7 +7,6 @@
 #include <iostream>
 #include <memory>
 
-
 /**
  * Exception to handle errors from camera Class
  */
@@ -19,15 +18,12 @@ public:
      *
      * @param msg Exception description
      */
-    CameraException(std::string msg): msg(msg){}
+    CameraException(std::string msg) : msg(msg) {}
 
     /**
      * Returns the explanatory string.
      */
-    const char * what() const throw() override
-    {
-        return msg.c_str();
-    }
+    const char *what() const throw() override { return msg.c_str(); }
 
 private:
     std::string msg; ///< description

@@ -1,10 +1,10 @@
 #include <sstream>
 
 #include "camera-capture/cameracapture.hpp"
-#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
 #include "camera-capture/frameconverters/raw2bayerconverter.hpp"
+#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
 
-void grab_frame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i=0)
+void grabFrame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i = 0)
 {
     std::stringstream filename;
     frame = std::make_unique<RawFrame>(CV_8UC2);
@@ -33,10 +33,10 @@ int main(int argc, char const *argv[])
     std::cout << "READ RAW IMAGE FROM FILE\n--------------------------\n";
 
     auto r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR);
-    RawFrame bayerFrame;
-    bayerFrame.readFromFile("../res/RGGB_1000_750", 1000, 750);
-    bayerFrame.saveToFile("../out/raw_bayer.raw");
-    Frame processed = r2bconv.convert(&bayerFrame);
+    RawFrame bayer_frame;
+    bayer_frame.readFromFile("../res/RGGB_1000_750", 1000, 750);
+    bayer_frame.saveToFile("../out/raw_bayer.raw");
+    Frame processed = r2bconv.convert(&bayer_frame);
     processed.saveToFile("../out/processed_bayer.png");
 
     std::cout << "\nSET CAMERA\n--------------------------\n";
@@ -48,14 +48,14 @@ int main(int argc, char const *argv[])
 
     if (!(cap->capabilities & V4L2_CAP_VIDEO_CAPTURE))
     {
-        std::cerr<<"This is not a video capture device\n";
-        exit (EXIT_FAILURE);
+        std::cerr << "This is not a video capture device\n";
+        exit(EXIT_FAILURE);
     }
 
     if (!(cap->capabilities & V4L2_CAP_STREAMING))
     {
-        std::cerr<<"V4L2_CAP_STREAMING failed\n";
-        exit (EXIT_FAILURE);
+        std::cerr << "V4L2_CAP_STREAMING failed\n";
+        exit(EXIT_FAILURE);
     }
 
     // adjust camera settings
@@ -72,14 +72,13 @@ int main(int argc, char const *argv[])
 
     for (int i = 0; i < 3; i++)
     {
-        grab_frame(raw_frame, camera, i);
+        grabFrame(raw_frame, camera, i);
     }
-
 
     std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 
     camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
-    grab_frame(raw_frame, camera, 5);
+    grabFrame(raw_frame, camera, 5);
 
     return 0;
 }

@@ -4,27 +4,27 @@
 #include <libv4l2.h>
 #include <linux/ioctl.h>
 #include <linux/types.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "camera-capture/utils.hpp"
 #include "camera-capture/rawframe.hpp"
+#include "camera-capture/utils.hpp"
 
 using fbi_ptr = std::shared_ptr<FrameBufferInfo>;
 
 /**
-* Handles capturing frames from v4l cameras
-* Provides C++ API for changing camera settings and capturing frames
-* See how it can be used in src/example.cpp
-*/
+ * Handles capturing frames from v4l cameras
+ * Provides C++ API for changing camera settings and capturing frames
+ * See how it can be used in src/example.cpp
+ */
 class CameraCapture
 {
 public:
@@ -68,7 +68,8 @@ public:
      * On error throws CameraException
      * @param width Image width in pixels
      * @param height Image height in pixels
-     * @param pixelformat The pixel format or type of compression (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
+     * @param pixelformat The pixel format or type of compression
+     * (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
      */
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
 
@@ -80,10 +81,14 @@ public:
      *
      * @param frame Pointer to the RawFrame object, where all raw frame details will be stored
      * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
-     * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the number of currently allocated buffers, the stream is restarted and new buffers are allocated.
-     * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create the mapping. For more information see mmap documentation.
+     * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the
+     * number of currently allocated buffers, the stream is restarted and new buffers are allocated.
+     * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be
+     * equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create
+     * the mapping. For more information see mmap documentation.
      */
-    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no=0, int number_of_buffers=1, std::vector<void*> locations=std::vector<void*>());
+    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no = 0, int number_of_buffers = 1,
+                 std::vector<void *> locations = std::vector<void *>());
 
     /**
      * Overload provided for convenience.
@@ -92,13 +97,13 @@ public:
      * @param buffer_no Index of camera buffer where the frame will be fetched.
      * @param locations Vector of pointers to a memory location, where frames should be placed.
      */
-    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void*> locations);
+    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void *> locations);
 
     /**
      * Returns the camera's file descriptor
      * @returns Camera file descriptor
      */
-    int getFd() {return fd;}
+    int getFd() { return fd; }
 
     /**
      * Close the camera
@@ -118,9 +123,11 @@ private:
      *
      * On error throws CameraException
      * @param n Number of buffers to allocate
-     * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information see mmap documentation.
+     * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If
+     * not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information
+     * see mmap documentation.
      */
-    void requestBuffers(int n=1, std::vector<void*> locations=std::vector<void*>());
+    void requestBuffers(int n = 1, std::vector<void *> locations = std::vector<void *>());
 
     /**
      * Stop streaming, free the buffers and mark camera as not ready to capture
@@ -129,11 +136,11 @@ private:
      */
     void stopStreaming();
 
-    int fd; ///< A file descriptor to the opened camera
-    int width; ///< Frame width in pixels, currently set on the camera
-    int height; ///< Frame width in pixels, currently set on the camera
-    bool ready_to_capture; ///< If the buffers are allocated and stream is active
-    std::shared_ptr<v4l2_buffer> info_buffer; ///< Informations about the current buffer
+    int fd;                                        ///< A file descriptor to the opened camera
+    int width;                                     ///< Frame width in pixels, currently set on the camera
+    int height;                                    ///< Frame width in pixels, currently set on the camera
+    bool ready_to_capture;                         ///< If the buffers are allocated and stream is active
+    std::shared_ptr<v4l2_buffer> info_buffer;      ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
-    std::vector<fbi_ptr> buffers;  ///< Currently allocated buffers
+    std::vector<fbi_ptr> buffers;                  ///< Currently allocated buffers
 };
