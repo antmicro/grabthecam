@@ -10,11 +10,7 @@ include_directories(
 	include
 )
 
-add_executable(${PROJECT_NAME}-demo
-    src/example.cpp
-)
-
-add_library(cameracapture
+add_library(${PROJECT_NAME}
     src/framebufferinfo.cpp
     src/cameracapture.cpp
     src/frame.cpp
@@ -24,8 +20,12 @@ add_library(cameracapture
     src/frameconverters/raw2yuvconverter.cpp
 )
 
+add_executable(${PROJECT_NAME}-demo
+    src/example.cpp
+)
+
 target_link_libraries(${PROJECT_NAME}-demo PRIVATE
-    cameracapture
+    ${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}-demo PUBLIC
@@ -35,10 +35,11 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
 
 add_compile_options(-Wall -Wextra -pedantic -Werror -o)
 
-install(
-    TARGETS cameracapture
-    DESTINATION lib
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
 )
+
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
