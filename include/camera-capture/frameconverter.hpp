@@ -1,5 +1,6 @@
 #pragma once
-#include "camera-capture/frame.hpp"
+
+#include <opencv2/core/mat.hpp>
 
 /**
  * Converts the frame form one format to another.
@@ -11,11 +12,6 @@
 class FrameConverter
 {
 public:
-    /**
-     * Convert the Frame from one format to another
-     */
-    virtual Frame convert(Frame *src);
-
     /**
      * Convert the matrix with frame from one format to another
      */

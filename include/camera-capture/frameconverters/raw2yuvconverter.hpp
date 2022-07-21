@@ -20,12 +20,7 @@ public:
      * @param OpenCV's datatype for destination matrix (see
      * https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
      */
-    Raw2YuvConverter(int code, int destMatType = CV_8UC3);
-
-    /**
-     * Convert YUV to RGB
-     */
-    Frame convert(Frame *src) override;
+    Raw2YuvConverter(int code, int destMatType = CV_8UC3) : code(code), destMatType(destMatType) {}
 
     /**
      * Convert YUV to RGB

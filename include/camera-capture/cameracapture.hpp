@@ -18,6 +18,7 @@
 #include "camera-capture/mmapbuffer.hpp"
 #include <opencv2/core/mat.hpp>
 #include "camera-capture/utils.hpp"
+#include "camera-capture/frameconverter.hpp"
 
 /**
  * Handles capturing frames from v4l cameras
@@ -72,6 +73,9 @@ public:
      */
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
 
+
+    //--------------------------------------------------------------------------------------------------
+
     /**
      * Fetch a frame to the buffer
      *
@@ -106,6 +110,9 @@ public:
      * Grab, export to cv::Mat and preprocess frame
      */
     void capture();
+
+    //------------------------------------------------------------------------------------------------
+    void setConverter(std::shared_ptr<FrameConverter> converter){ this->converter = converter; }
 
     /**
      * Returns the camera's file descriptor
@@ -156,4 +163,5 @@ private:
     std::shared_ptr<v4l2_buffer> info_buffer;      ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers;                  ///< Currently allocated buffers
+    std::shared_ptr<FrameConverter> converter;
 };
