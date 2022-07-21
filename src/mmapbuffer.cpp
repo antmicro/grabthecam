@@ -1,7 +1,7 @@
-#include "camera-capture/framebufferinfo.hpp"
+#include "camera-capture/mmapbuffer.hpp"
 #include "camera-capture/utils.hpp"
 
-FrameBufferInfo::FrameBufferInfo(void *location, int size, int fd, int offset) : size(size)
+MMapBuffer::MMapBuffer(void *location, int size, int fd, int offset) : size(size)
 {
     start = mmap(location, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
     memset(start, 0, size);
@@ -12,4 +12,4 @@ FrameBufferInfo::FrameBufferInfo(void *location, int size, int fd, int offset) :
     }
 }
 
-FrameBufferInfo::~FrameBufferInfo() { munmap(start, size); }
+MMapBuffer::~MMapBuffer() { munmap(start, size); }

@@ -9,7 +9,7 @@
 /**
  * Class for managing memory mapping and keeping information about buffer.
  */
-class FrameBufferInfo
+class MMapBuffer
 {
 public:
     /**
@@ -21,18 +21,12 @@ public:
      * @param fd Camera file descriptor
      * @param offset Offset in fd. For more information see mmap documentation
      */
-    FrameBufferInfo(void *location, int size, int fd, int offset);
-
-    /**
-     * [TEMPORARY] Constructor used when reading raw frame from file. Doesn't map the memory, just sets needed
-     * variables.
-     */
-    FrameBufferInfo(void *location, int bytes) : start(location), bytesused(bytes) {}
+    MMapBuffer(void *location, int size, int fd, int offset);
 
     /**
      * Destructor. Unmaps the memory
      */
-    ~FrameBufferInfo();
+    ~MMapBuffer();
 
     unsigned int bytesused; ///< bytes used by a captured frame
     void *start;            ///< pointer to the memry location, where the buffer starts

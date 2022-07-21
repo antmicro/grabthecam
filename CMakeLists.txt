@@ -11,13 +11,11 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME}
-    src/framebufferinfo.cpp
+    src/mmapbuffer.cpp
     src/cameracapture.cpp
-    src/frame.cpp
-    src/rawframe.cpp
-    src/frameconverter.cpp
-    src/frameconverters/raw2bayerconverter.cpp
-    src/frameconverters/raw2yuvconverter.cpp
+#     src/frameconverter.cpp
+#     src/frameconverters/raw2bayerconverter.cpp
+#     src/frameconverters/raw2yuvconverter.cpp
 )
 
 add_executable(${PROJECT_NAME}-demo
@@ -36,8 +34,8 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
 add_compile_options(-Wall -Wextra -pedantic -Werror -o)
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
 
 

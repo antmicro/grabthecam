@@ -1,43 +1,44 @@
 #include <sstream>
 
 #include "camera-capture/cameracapture.hpp"
-#include "camera-capture/frameconverters/raw2bayerconverter.hpp"
-#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
+#include <filesystem> // checking if the directory exists
+#include <opencv2/imgcodecs.hpp> //imwrite
 
-void grabFrame(std::unique_ptr<RawFrame> &frame, CameraCapture &camera, int i = 0)
+void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
 {
-    std::stringstream filename;
-    frame = std::make_unique<RawFrame>(CV_8UC2);
-    camera.capture(frame, 0, 1);
+    std::cout << "Save\n";
+    // check if directory exists
+    std:: filesystem::path path = filename;
+    std::filesystem::create_directories(path.parent_path());
 
-    // save frame
-    filename << "../out/raw_" << i << ".raw";
-    frame->saveToFile(filename.str());
-    std::cout << "Raw frame saved\n";
-    filename.str("");
-    filename.clear();
+    // Write the data out to file
+    std::ofstream out_file;
+    out_file.open(filename, std::ios::binary);
+    if (out_file.fail())
+    {
+        throw CameraException("Cannot open the file to save. Check if file exists and you have permission to edit it.");
+    }
 
-    auto r2yconv = Raw2YuvConverter(cv::COLOR_YUV2BGR_YUY2);
-    Frame processed_frame = r2yconv.convert(frame.get());
+    out_file.write((char *)(info->start), info->bytesused);
+    out_file.close();
+}
 
-    // save frame
-    filename << "../out/processed_" << i << ".png";
-    processed_frame.saveToFile(filename.str());
-    std::cout << "Processed frame saved\n";
-    filename.str("");
-    filename.clear();
+void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
+{
+    std::cout << "Save\n";
+    // check if directory exists
+    std::filesystem::path path = filename;
+    std::filesystem::create_directories(path.parent_path());
+
+    if (!cv::imwrite(filename, *frame.get()))
+    {
+        throw CameraException("Cannot save the processed Frame");
+    }
 }
 
 int main(int argc, char const *argv[])
 {
     std::cout << "READ RAW IMAGE FROM FILE\n--------------------------\n";
-
-    auto r2bconv = Raw2BayerConverter(cv::COLOR_BayerBG2BGR);
-    RawFrame bayer_frame;
-    bayer_frame.readFromFile("../res/RGGB_1000_750", 1000, 750);
-    bayer_frame.saveToFile("../out/raw_bayer.raw");
-    Frame processed = r2bconv.convert(&bayer_frame);
-    processed.saveToFile("../out/processed_bayer.png");
 
     std::cout << "\nSET CAMERA\n--------------------------\n";
     // get camera capabilities
@@ -68,17 +69,24 @@ int main(int argc, char const *argv[])
 
     std::cout << "\nCAPTURE YUV FRAMES\n--------------------------\n";
 
-    std::unique_ptr<RawFrame> raw_frame;
+    std::shared_ptr<MMapBuffer> raw_frame;
+    std::shared_ptr<cv::Mat> raw_mat;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 1; i++)
     {
-        grabFrame(raw_frame, camera, i);
+        camera.grab();
+        camera.read(raw_frame);
+        std::cout << (void *) raw_frame->start << std::endl;
+        rawToFile("../out/raw.raw", raw_frame);
+
+        camera.read(raw_mat, CV_8UC1);
+        saveToFile("../out/notpng.png", raw_mat);
     }
 
-    std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
+    // std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 
-    camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
-    grabFrame(raw_frame, camera, 5);
+    // camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
+    // grabFrame(raw_frame, camera, 5);
 
     return 0;
 }

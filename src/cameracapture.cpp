@@ -168,19 +168,13 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
         buffers.push_back(
-            std::make_shared<FrameBufferInfo>(locations[i], query_buffer.length, fd, query_buffer.m.offset));
+            std::make_shared<MMapBuffer>(locations[i], query_buffer.length, fd, query_buffer.m.offset));
     }
 }
 
-void CameraCapture::capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void *> locations)
+void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
-    capture(frame, buffer_no, locations.size(), locations);
-}
-
-void CameraCapture::capture(std::unique_ptr<RawFrame> &frame, int buffer_no, int number_of_buffers,
-                            std::vector<void *> locations)
-{
-    // std::cout << "Capture\n";
+    std::cout << "Grab\n";
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
         stopStreaming();
@@ -219,9 +213,22 @@ void CameraCapture::capture(std::unique_ptr<RawFrame> &frame, int buffer_no, int
     {
         throw CameraException("Could not dequeue the buffer. See errno and VIDEOC_DQBUF docs for more information.");
     }
-
-    buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
-
+    //TODO: is the buffer still valid in another shared_ptr?
     // Frames get written after dequeuing the buffer
-    frame->assignFrame(buffers[buffer_no], this->width, this->height);
+    buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
+
+void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no)
+{
+    std::cout << "Read\n";
+    frame = buffers[buffer_no];
+}
+
+void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int buffer_no, int dtype)
+{
+    std::cout << "Read cv\n";
+    frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
+}
+
+void CameraCapture::capture()
+{}

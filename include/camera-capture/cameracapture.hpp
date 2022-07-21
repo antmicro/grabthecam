@@ -15,10 +15,9 @@
 #include <string>
 #include <vector>
 
-#include "camera-capture/rawframe.hpp"
+#include "camera-capture/mmapbuffer.hpp"
+#include <opencv2/core/mat.hpp>
 #include "camera-capture/utils.hpp"
-
-using fbi_ptr = std::shared_ptr<FrameBufferInfo>;
 
 /**
  * Handles capturing frames from v4l cameras
@@ -74,12 +73,8 @@ public:
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
 
     /**
-     * Captures a frame
+     * Fetch a frame to the buffer
      *
-     * Fetch a frame (to the specific location) and optionally save it to file.
-     * On error throws CameraException
-     *
-     * @param frame Pointer to the RawFrame object, where all raw frame details will be stored
      * @param buffer_no Index of camera buffer where the frame will be fetched. Default = 0
      * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the
      * number of currently allocated buffers, the stream is restarted and new buffers are allocated.
@@ -87,23 +82,41 @@ public:
      * equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create
      * the mapping. For more information see mmap documentation.
      */
-    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no = 0, int number_of_buffers = 1,
-                 std::vector<void *> locations = std::vector<void *>());
+    void grab(int buffer_no=0, int number_of_buffers=1, std::vector<void *> locations = std::vector<void *>());
 
     /**
-     * Overload provided for convenience.
+     * Return raw frame data
      *
-     * @param frame Pointer to the RawFrame object, where all raw frame details will be stored
-     * @param buffer_no Index of camera buffer where the frame will be fetched.
-     * @param locations Vector of pointers to a memory location, where frames should be placed.
+     * @param frame MMapBuffer where the raw frame data will be placed
+     * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void capture(std::unique_ptr<RawFrame> &frame, int buffer_no, std::vector<void *> locations);
+    void read(std::shared_ptr<MMapBuffer> &frame, int buffer_no = 0);
+
+    /**
+     * Return raw frame data
+     *
+     * @param frame cv::Mat where the raw frame data will be placed
+     * @param datatype OpenCV's primitive datatype, in which values in matrix will be stored (see
+     * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
+     * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
+     */
+    void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0);
+
+    /**
+     * Grab, export to cv::Mat and preprocess frame
+     */
+    void capture();
 
     /**
      * Returns the camera's file descriptor
      * @returns Camera file descriptor
      */
     int getFd() { return fd; }
+
+    /**
+     * Returns current width and height
+     */
+    int* getFormat();
 
     /**
      * Close the camera
@@ -142,5 +155,5 @@ private:
     bool ready_to_capture;                         ///< If the buffers are allocated and stream is active
     std::shared_ptr<v4l2_buffer> info_buffer;      ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
-    std::vector<fbi_ptr> buffers;                  ///< Currently allocated buffers
+    std::vector<std::shared_ptr<MMapBuffer>> buffers;                  ///< Currently allocated buffers
 };
