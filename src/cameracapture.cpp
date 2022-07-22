@@ -224,11 +224,17 @@ void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no)
     frame = buffers[buffer_no];
 }
 
-void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int buffer_no, int dtype)
+void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no)
 {
     std::cout << "Read cv\n";
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
-void CameraCapture::capture()
-{}
+cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of_buffers, std::vector<void *> locations)
+{
+    std::shared_ptr<cv::Mat> frame;
+    grab(buffer_no, number_of_buffers, locations);
+    read(frame, raw_frame_dtype, buffer_no);
+    std::cout << "before conversion\n";
+    return converter->convertMatrix(*frame);
+}

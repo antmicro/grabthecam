@@ -1,7 +1,7 @@
 #include <sstream>
 
-#include "camera-capture/cameracapture.hpp"
 #include "camera-capture/frameconverters/raw2yuvconverter.hpp"
+#include "camera-capture/cameracapture.hpp"
 #include <filesystem> // checking if the directory exists
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp> //imwrite
@@ -73,20 +73,15 @@ int main(int argc, char const *argv[])
 
     std::shared_ptr<MMapBuffer> raw_frame;
     std::shared_ptr<cv::Mat> raw_mat;
+    std::shared_ptr<cv::Mat> processed_frame;
 
-    std::shared_ptr<FrameConverter> converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_UYVY);
-    // Raw2YuvConverter(cv::COLOR_YUV2BGR_UYVY, CV_8UC3);
+    std::shared_ptr<FrameConverter> converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_YUY2);
     camera.setConverter(converter);
 
     for (int i = 0; i < 1; i++)
     {
-        camera.grab();
-        camera.read(raw_frame);
-        std::cout << (void *) raw_frame->start << std::endl;
-        rawToFile("../out/raw.raw", raw_frame);
-
-        camera.read(raw_mat, CV_8UC1);
-        saveToFile("../out/notpng.png", raw_mat);
+        processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
+        saveToFile("../out/processed_frame.png", processed_frame);
     }
 
     // std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";

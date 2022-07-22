@@ -108,8 +108,17 @@ public:
 
     /**
      * Grab, export to cv::Mat and preprocess frame
+     *
+     * @param raw_frame_datatype OpenCV's primitive datatype, in which values in matrix will be stored (see
+     * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
+     * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
+     * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the
+     * number of currently allocated buffers, the stream is restarted and new buffers are allocated.
+     * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be
+     * equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create
+     * the mapping. For more information see mmap documentation.
      */
-    void capture();
+    cv::Mat capture(int raw_frame_dtype, int buffer_no=0, int number_of_buffers=1, std::vector<void *> locations=std::vector<void *>());
 
     //------------------------------------------------------------------------------------------------
     void setConverter(std::shared_ptr<FrameConverter> converter){ this->converter = converter; }

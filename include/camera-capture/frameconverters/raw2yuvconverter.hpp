@@ -13,6 +13,8 @@
 class Raw2YuvConverter : public FrameConverter
 {
 public:
+    Raw2YuvConverter(){}
+
     /**
      * Constructor for Yuv converter
      * @param code OpenCV's color space conversion code (see
@@ -26,6 +28,7 @@ public:
      * Convert YUV to RGB
      */
     cv::Mat convertMatrix(cv::Mat src) override;
+    cv::Mat convertMatrix(MMapBuffer src, int src_dtype, int width, int height) override;
 
 private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)

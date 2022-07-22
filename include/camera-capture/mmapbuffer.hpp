@@ -29,6 +29,6 @@ public:
     ~MMapBuffer();
 
     unsigned int bytesused; ///< bytes used by a captured frame
-    void *start;            ///< pointer to the memry location, where the buffer starts
+    void *start;            ///< pointer to the memory location, where the buffer starts
     int size;               ///< size of the buffer
 };
