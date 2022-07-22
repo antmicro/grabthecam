@@ -142,8 +142,7 @@ public:
      *
      * @return width and height currently set in the camera
      */
-    //TODO
-    int* getFormat();
+    std::pair<int, int> getFormat();
 
     /**
      * Close the camera

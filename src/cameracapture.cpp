@@ -171,6 +171,11 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     }
 }
 
+std::pair<int, int> CameraCapture::getFormat()
+{
+    return std::pair<int, int>(width, height);
+}
+
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
     if (ready_to_capture && buffers.size() != number_of_buffers)

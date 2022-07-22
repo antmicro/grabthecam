@@ -84,7 +84,8 @@ int main(int argc, char const *argv[])
         // camera.read(raw_frame);
 
         // rawToFile("../out/raw_" + std::to_string(i) + ".raw", raw_frame);
-        // processed_frame = std::make_shared<cv::Mat> (converter->convertMatrix(raw_frame, CV_8UC2, 960, 720));
+        // auto dims = camera.getFormat();
+        // processed_frame = std::make_shared<cv::Mat> (converter->convertMatrix(raw_frame, CV_8UC2, std::get<0>(dims), std::get<1>(dims)));
 
         processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
         saveToFile("../out/processed_frame_" + std::to_string(i)+".png", processed_frame);
