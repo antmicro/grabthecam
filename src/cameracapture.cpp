@@ -11,10 +11,9 @@ int xioctl(int fd, int request, void *arg)
     return res;
 }
 
-CameraCapture::CameraCapture(std::string filename)
+CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 {
     // Open the device
-
     this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
 
     if (fd < 0)
@@ -174,7 +173,6 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
 
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
-    std::cout << "Grab\n";
     if (ready_to_capture && buffers.size() != number_of_buffers)
     {
         stopStreaming();
@@ -182,7 +180,7 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
 
     if (!ready_to_capture)
     {
-        std::cout << "Preparing to capture...\n";
+        // std::cout << "Preparing to capture...\n";
         requestBuffers(number_of_buffers, locations); // buffers in the device memory
 
         info_buffer = std::make_shared<v4l2_buffer>();
@@ -213,28 +211,34 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
     {
         throw CameraException("Could not dequeue the buffer. See errno and VIDEOC_DQBUF docs for more information.");
     }
-    //TODO: is the buffer still valid in another shared_ptr?
     // Frames get written after dequeuing the buffer
     buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
 
 void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no)
 {
-    std::cout << "Read\n";
     frame = buffers[buffer_no];
 }
 
 void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no)
 {
-    std::cout << "Read cv\n";
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
 cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
     std::shared_ptr<cv::Mat> frame;
+
     grab(buffer_no, number_of_buffers, locations);
     read(frame, raw_frame_dtype, buffer_no);
-    std::cout << "before conversion\n";
-    return converter->convertMatrix(*frame);
+
+    if (converter != nullptr)
+    {
+        frame = std::make_shared<cv::Mat>(converter->convertMatrix(*frame));
+    }
+    else
+    {
+       std::cout << "No converter\n";
+    }
+    return *frame;
 }

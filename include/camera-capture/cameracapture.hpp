@@ -99,17 +99,19 @@ public:
     /**
      * Return raw frame data
      *
-     * @param frame cv::Mat where the raw frame data will be placed
-     * @param datatype OpenCV's primitive datatype, in which values in matrix will be stored (see
+     * @param frame Pointer to cv::Mat where the raw frame data will be placed
+     * @param dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
     void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0);
 
     /**
-     * Grab, export to cv::Mat and preprocess frame
+     * Grab, export to cv::Mat (and preprocess) frame
      *
-     * @param raw_frame_datatype OpenCV's primitive datatype, in which values in matrix will be stored (see
+     * Grab the frame to designated buffer and read it to cv::Mat. If converter is set, convert the frame using this converter. If not, ommit preprocessing.
+     *
+     * @param raw_frame_dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the
@@ -117,10 +119,16 @@ public:
      * @param locations Vector of pointers to a memory location, where frames should be placed. Its length should be
      * equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create
      * the mapping. For more information see mmap documentation.
+     *
+     * @return Captured (and preprocessed) frame
      */
     cv::Mat capture(int raw_frame_dtype, int buffer_no=0, int number_of_buffers=1, std::vector<void *> locations=std::vector<void *>());
 
     //------------------------------------------------------------------------------------------------
+    /**
+     * Sets converter for raw frames
+     * @param converter Converter object
+     */
     void setConverter(std::shared_ptr<FrameConverter> converter){ this->converter = converter; }
 
     /**
@@ -131,7 +139,10 @@ public:
 
     /**
      * Returns current width and height
+     *
+     * @return width and height currently set in the camera
      */
+    //TODO
     int* getFormat();
 
     /**
@@ -141,7 +152,7 @@ public:
 
 private:
     /**
-     * Get current width and height. Sets relevants fields.
+     * Get current width and height. Set relevants fields.
      *
      * On error throws CameraException
      */
@@ -171,6 +182,6 @@ private:
     bool ready_to_capture;                         ///< If the buffers are allocated and stream is active
     std::shared_ptr<v4l2_buffer> info_buffer;      ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
-    std::vector<std::shared_ptr<MMapBuffer>> buffers;                  ///< Currently allocated buffers
+    std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;
 };

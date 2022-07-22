@@ -16,7 +16,22 @@ class FrameConverter
 public:
     /**
      * Convert the matrix with frame from one format to another
+     *
+     * @param src Matrix to convert
+     *
+     * @return Frame in desired format
      */
     virtual cv::Mat convertMatrix(cv::Mat src) = 0;
-    virtual cv::Mat convertMatrix(MMapBuffer src, int src_dtype, int width, int height) = 0;
+
+    /**
+     * Convert the frame from one format to another
+     *
+     * @param src Frame to convert
+     * @param src_dtype OpenCV's datatype for source matrix (see https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
+     * @param width Source frame width in pixels
+     * @param height source frame height in pixels
+     *
+     * @return Frame in desired format
+     */
+    virtual cv::Mat convertMatrix(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height) = 0;
 };

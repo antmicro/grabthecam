@@ -8,7 +8,7 @@
 
 void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
 {
-    std::cout << "Save\n";
+    std::cout << "Saving " << filename << std::endl;
     // check if directory exists
     std:: filesystem::path path = filename;
     std::filesystem::create_directories(path.parent_path());
@@ -27,7 +27,8 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
 
 void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
 {
-    std::cout << "Save\n";
+    std::cout << "Saving " << filename << std::endl;
+
     // check if directory exists
     std::filesystem::path path = filename;
     std::filesystem::create_directories(path.parent_path());
@@ -40,9 +41,8 @@ void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
 
 int main(int argc, char const *argv[])
 {
-    std::cout << "READ RAW IMAGE FROM FILE\n--------------------------\n";
-
     std::cout << "\nSET CAMERA\n--------------------------\n";
+
     // get camera capabilities
     auto cap = std::make_unique<v4l2_capability>();
 
@@ -72,22 +72,31 @@ int main(int argc, char const *argv[])
     std::cout << "\nCAPTURE YUV FRAMES\n--------------------------\n";
 
     std::shared_ptr<MMapBuffer> raw_frame;
-    std::shared_ptr<cv::Mat> raw_mat;
+    std::shared_ptr<cv::Mat> raw_mat[3];
     std::shared_ptr<cv::Mat> processed_frame;
 
     std::shared_ptr<FrameConverter> converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_YUY2);
     camera.setConverter(converter);
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 3; i++)
     {
+        // camera.grab();
+        // camera.read(raw_frame);
+
+        // rawToFile("../out/raw_" + std::to_string(i) + ".raw", raw_frame);
+        // processed_frame = std::make_shared<cv::Mat> (converter->convertMatrix(raw_frame, CV_8UC2, 960, 720));
+
         processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
-        saveToFile("../out/processed_frame.png", processed_frame);
+        saveToFile("../out/processed_frame_" + std::to_string(i)+".png", processed_frame);
     }
 
-    // std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 
-    // camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
-    // grabFrame(raw_frame, camera, 5);
+    std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 
+    camera.setConverter(nullptr);
+    camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
+    camera.grab();
+    camera.read(raw_frame);
+    rawToFile("../out/jpg.jpg", raw_frame);
     return 0;
 }

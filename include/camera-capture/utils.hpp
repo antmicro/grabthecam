@@ -22,6 +22,8 @@ public:
 
     /**
      * Returns the explanatory string.
+     *
+     * @return Message, which explains the error
      */
     const char *what() const throw() override { return msg.c_str(); }
 
