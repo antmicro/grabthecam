@@ -28,7 +28,7 @@ public:
     /**
      * Demosaicing
      */
-    cv::Mat convertMatrix(cv::Mat src) override;
+    cv::Mat convert(cv::Mat src) override;
 
 private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)

@@ -5,7 +5,7 @@ Raw2BayerConverter::Raw2BayerConverter(int code, int destMatType, int nChannels)
 {
 }
 
-cv::Mat Raw2BayerConverter::convertMatrix(cv::Mat src)
+cv::Mat Raw2BayerConverter::convert(cv::Mat src)
 {
     // std::cout << "Bayer\n";
     cv::Mat processed_frame = cv::Mat(src.rows, src.cols, destMatType);

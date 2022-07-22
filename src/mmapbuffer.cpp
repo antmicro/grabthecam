@@ -12,7 +12,4 @@ MMapBuffer::MMapBuffer(void *location, int size, int fd, int offset) : size(size
     }
 }
 
-MMapBuffer::~MMapBuffer()
-{
-    munmap(start, size); 
-}
+MMapBuffer::~MMapBuffer() { munmap(start, size); }

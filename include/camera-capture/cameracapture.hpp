@@ -15,10 +15,10 @@
 #include <string>
 #include <vector>
 
-#include "camera-capture/mmapbuffer.hpp"
-#include <opencv2/core/mat.hpp>
-#include "camera-capture/utils.hpp"
 #include "camera-capture/frameconverter.hpp"
+#include "camera-capture/mmapbuffer.hpp"
+#include "camera-capture/utils.hpp"
+#include <opencv2/core/mat.hpp>
 
 /**
  * Handles capturing frames from v4l cameras
@@ -73,7 +73,6 @@ public:
      */
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
 
-
     //--------------------------------------------------------------------------------------------------
 
     /**
@@ -86,7 +85,7 @@ public:
      * equal to number of buffers. If not provided, the kernel chooses the (page-aligned) addresses at which to create
      * the mapping. For more information see mmap documentation.
      */
-    void grab(int buffer_no=0, int number_of_buffers=1, std::vector<void *> locations = std::vector<void *>());
+    void grab(int buffer_no = 0, int number_of_buffers = 1, std::vector<void *> locations = std::vector<void *>());
 
     /**
      * Return raw frame data
@@ -109,7 +108,8 @@ public:
     /**
      * Grab, export to cv::Mat (and preprocess) frame
      *
-     * Grab the frame to designated buffer and read it to cv::Mat. If converter is set, convert the frame using this converter. If not, ommit preprocessing.
+     * Grab the frame to designated buffer and read it to cv::Mat. If converter is set, convert the frame using this
+     * converter. If not, ommit preprocessing.
      *
      * @param raw_frame_dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
@@ -122,14 +122,15 @@ public:
      *
      * @return Captured (and preprocessed) frame
      */
-    cv::Mat capture(int raw_frame_dtype, int buffer_no=0, int number_of_buffers=1, std::vector<void *> locations=std::vector<void *>());
+    cv::Mat capture(int raw_frame_dtype, int buffer_no = 0, int number_of_buffers = 1,
+                    std::vector<void *> locations = std::vector<void *>());
 
     //------------------------------------------------------------------------------------------------
     /**
      * Sets converter for raw frames
      * @param converter Converter object
      */
-    void setConverter(std::shared_ptr<FrameConverter> converter){ this->converter = converter; }
+    void setConverter(std::shared_ptr<FrameConverter> converter) { this->converter = converter; }
 
     /**
      * Returns the camera's file descriptor
@@ -175,12 +176,12 @@ private:
      */
     void stopStreaming();
 
-    int fd;                                        ///< A file descriptor to the opened camera
-    int width;                                     ///< Frame width in pixels, currently set on the camera
-    int height;                                    ///< Frame width in pixels, currently set on the camera
-    bool ready_to_capture;                         ///< If the buffers are allocated and stream is active
-    std::shared_ptr<v4l2_buffer> info_buffer;      ///< Informations about the current buffer
-    int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE; ///< Type of the allocated buffer
+    int fd;                                           ///< A file descriptor to the opened camera
+    int width;                                        ///< Frame width in pixels, currently set on the camera
+    int height;                                       ///< Frame width in pixels, currently set on the camera
+    bool ready_to_capture;                            ///< If the buffers are allocated and stream is active
+    std::shared_ptr<v4l2_buffer> info_buffer;         ///< Informations about the current buffer
+    int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
-    std::shared_ptr<FrameConverter> converter;
+    std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
 };

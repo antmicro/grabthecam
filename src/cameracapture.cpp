@@ -166,15 +166,11 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
 
         // use a pointer to point to the newly created queryBuffer
         // map the memory address of the device to an address in memory
-        buffers.push_back(
-            std::make_shared<MMapBuffer>(locations[i], query_buffer.length, fd, query_buffer.m.offset));
+        buffers.push_back(std::make_shared<MMapBuffer>(locations[i], query_buffer.length, fd, query_buffer.m.offset));
     }
 }
 
-std::pair<int, int> CameraCapture::getFormat()
-{
-    return std::pair<int, int>(width, height);
-}
+std::pair<int, int> CameraCapture::getFormat() { return std::pair<int, int>(width, height); }
 
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
@@ -220,10 +216,7 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
     buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
 
-void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no)
-{
-    frame = buffers[buffer_no];
-}
+void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) { frame = buffers[buffer_no]; }
 
 void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no)
 {
@@ -239,11 +232,11 @@ cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of
 
     if (converter != nullptr)
     {
-        frame = std::make_shared<cv::Mat>(converter->convertMatrix(*frame));
+        frame = std::make_shared<cv::Mat>(converter->convert(*frame));
     }
     else
     {
-       std::cout << "No converter\n";
+        std::cout << "No converter\n";
     }
     return *frame;
 }

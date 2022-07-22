@@ -1,16 +1,16 @@
 #include <sstream>
 
-#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
 #include "camera-capture/cameracapture.hpp"
-#include <filesystem> // checking if the directory exists
-#include <opencv2/imgproc.hpp>
+#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
+#include <filesystem>            // checking if the directory exists
 #include <opencv2/imgcodecs.hpp> //imwrite
+#include <opencv2/imgproc.hpp>
 
 void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
 {
     std::cout << "Saving " << filename << std::endl;
     // check if directory exists
-    std:: filesystem::path path = filename;
+    std::filesystem::path path = filename;
     std::filesystem::create_directories(path.parent_path());
 
     // Write the data out to file
@@ -85,12 +85,12 @@ int main(int argc, char const *argv[])
 
         // rawToFile("../out/raw_" + std::to_string(i) + ".raw", raw_frame);
         // auto dims = camera.getFormat();
-        // processed_frame = std::make_shared<cv::Mat> (converter->convertMatrix(raw_frame, CV_8UC2, std::get<0>(dims), std::get<1>(dims)));
+        // processed_frame = std::make_shared<cv::Mat> (converter->convert(raw_frame, CV_8UC2, std::get<0>(dims),
+        // std::get<1>(dims)));
 
         processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
-        saveToFile("../out/processed_frame_" + std::to_string(i)+".png", processed_frame);
+        saveToFile("../out/processed_frame_" + std::to_string(i) + ".png", processed_frame);
     }
-
 
     std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 
