@@ -98,12 +98,22 @@ public:
     /**
      * Return raw frame data
      *
-     * @param frame Pointer to cv::Mat where the raw frame data will be placed
+     * @param frame cv::Mat object wrapping the raw frame
      * @param dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
     void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0);
+
+    /**
+     * Return raw frame data
+     *
+     * @param frame cv::Mat object wrapping the raw frame
+     * @param dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
+     * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
+     * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
+     */
+    void read(cv::Mat *frame, int dtype, int buffer_no = 0);
 
     /**
      * Grab, export to cv::Mat (and preprocess) frame

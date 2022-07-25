@@ -223,6 +223,11 @@ void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
+void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no)
+{
+    frame = new cv::Mat(height, width, dtype, buffers[buffer_no]->start);
+}
+
 cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
     std::shared_ptr<cv::Mat> frame;
