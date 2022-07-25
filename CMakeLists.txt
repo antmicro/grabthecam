@@ -13,7 +13,7 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/mmapbuffer.cpp
     src/frameconverters/raw2yuvconverter.cpp
-#   src/frameconverters/raw2bayerconverter.cpp
+    src/frameconverters/raw2bayerconverter.cpp
     src/cameracapture.cpp
 )
 
