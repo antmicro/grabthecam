@@ -23,10 +23,7 @@ public:
      * @param nChannels Number of channels in the destination image; if the parameter is 0, the number of the channels
      * is derived automatically from raw matrix and code.
      */
-    Raw2BayerConverter(int code, int destMatType = CV_8UC3, int nChannels = 0)
-        : code(code), destMatType(destMatType), nChannels(nChannels)
-    {
-    }
+    Raw2BayerConverter(int code, int destMatType = CV_8UC3, int nChannels = 0): code(code), destMatType(destMatType), nChannels(nChannels){}
 
     /**
      * Perform demosaicing
@@ -34,17 +31,6 @@ public:
      * @param src Matrix to convert
      */
     cv::Mat convert(cv::Mat src) override;
-
-    /**
-     * Convert Bayer to RGB
-     *
-     * @param src Frame to convert
-     * @param src_dtype OpenCV's datatype for source matrix (see
-     * https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
-     * @param width Source frame width in pixels
-     * @param height Source frame height in pixels
-     */
-    cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height) override;
 
 private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)

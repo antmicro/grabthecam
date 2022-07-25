@@ -72,16 +72,18 @@ int main(int argc, char const *argv[])
     std::cout << "\nCAPTURE YUV FRAMES\n--------------------------\n";
 
     std::shared_ptr<MMapBuffer> raw_frame;
-    std::shared_ptr<cv::Mat> raw_mat[3];
+    // std::shared_ptr<cv::Mat> raw_mat[3];
     std::shared_ptr<cv::Mat> processed_frame;
+    // cv::Mat *raw_frame_raw_ptr;
 
     std::shared_ptr<FrameConverter> converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_YUY2);
     camera.setConverter(converter);
 
     for (int i = 0; i < 3; i++)
     {
-        // camera.grab();
+        camera.grab();
         // camera.read(raw_frame);
+        // camera.read(raw_frame_raw_ptr, CV_8UC2);
 
         // rawToFile("../out/raw_" + std::to_string(i) + ".raw", raw_frame);
         // auto dims = camera.getFormat();
@@ -90,7 +92,8 @@ int main(int argc, char const *argv[])
 
         processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
         saveToFile("../out/processed_frame_" + std::to_string(i) + ".png", processed_frame);
-    }
+
+}
 
     std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
 

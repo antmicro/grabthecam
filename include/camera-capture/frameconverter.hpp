@@ -25,6 +25,8 @@ public:
     /**
      * Convert the frame from one format to another
      *
+     * Wrap the frame in cv::Mat and perform conversion
+     *
      * @param src Frame to convert
      * @param src_dtype OpenCV's datatype for source matrix (see
      * https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
@@ -33,5 +35,5 @@ public:
      *
      * @return Frame in desired format
      */
-    virtual cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height) = 0;
+    virtual cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height);
 };

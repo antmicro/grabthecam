@@ -32,17 +32,6 @@ public:
      */
     cv::Mat convert(cv::Mat src) override;
 
-    /**
-     * Convert YUV to RGB
-     *
-     * @param src Frame to convert
-     * @param src_dtype OpenCV's datatype for source matrix (see
-     * https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
-     * @param width Source frame width in pixels
-     * @param height source frame height in pixels
-     */
-    cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height) override;
-
 private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)
     int destMatType; ///< OpenCV's datatype for destination matrix (see: constructor)
