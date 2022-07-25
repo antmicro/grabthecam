@@ -1,7 +1,10 @@
 PROJECT_NAME     = Camera-capture
 OUTPUT_DIRECTORY = html
 WARNINGS         = YES
+WARN_IF_UNDOCUMENTED  = YES
+WARN_IF_DOC_ERROR     = YES
+WARN_NO_PARAMDOC      = YES
 INPUT            = src include/camera-capture
 FILE_PATTERNS    = *.cpp *.hpp
-INCLUDE_PATH     = include/camera-capture
+INCLUDE_PATH     = include/
 HAVE_DOT = NO

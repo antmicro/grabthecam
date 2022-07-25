@@ -7,32 +7,26 @@
 #include <iostream>
 #include <memory>
 
-
 /**
  * Exception to handle errors from camera Class
-*/
+ */
 class CameraException : public std::exception
 {
 public:
     /**
-    * Constructor
-    *
-    * @param msg Exception description
-    */
-    CameraException(std::string msg): msg(msg){}
+     * Constructor
+     *
+     * @param msg Exception description
+     */
+    CameraException(std::string msg) : msg(msg) {}
 
     /**
      * Returns the explanatory string.
+     *
+     * @return Message, which explains the error
      */
-    const char * what() const throw() override
-    {
-        return msg.c_str();
-    }
+    const char *what() const throw() override { return msg.c_str(); }
 
 private:
     std::string msg; ///< description
 };
-
-using ucap_ptr = std::unique_ptr<v4l2_capability>;
-using schar_ptr = std::shared_ptr<char>;
-using svbuf_ptr = std::shared_ptr<v4l2_buffer>;

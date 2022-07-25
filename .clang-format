@@ -1,0 +1,18 @@
+﻿---
+BasedOnStyle: LLVM
+Language: Cpp
+
+IndentWidth: '4'
+TabWidth: '4'
+
+AccessModifierOffset: -4 # before v13
+# IndentAccessModifiers: false # from v13
+
+BreakBeforeBraces: Allman
+AlwaysBreakAfterReturnType: None
+
+PenaltyBreakComment: 0
+ColumnLimit: 120
+
+# InsertBraces: true # v15. In earlier versions use clang-tidy
+...
