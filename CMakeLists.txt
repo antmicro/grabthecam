@@ -10,12 +10,17 @@ include_directories(
 	include
 )
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp
     src/frameconverter.cpp
     src/frameconverters/raw2yuvconverter.cpp
     src/frameconverters/raw2bayerconverter.cpp
     src/cameracapture.cpp
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION}
 )
 
 add_executable(${PROJECT_NAME}-demo
