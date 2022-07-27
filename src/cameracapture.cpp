@@ -25,14 +25,12 @@ CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 
 CameraCapture::~CameraCapture()
 {
-    std::cout << "closing...\n";
-
     // end streaming
     xioctl(fd, VIDIOC_STREAMOFF, &buffer_type);
     v4l2_close(this->fd);
 }
 
-void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap)
+void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap) const
 {
     // Ask the device if it can capture frames
     if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
@@ -52,7 +50,7 @@ void CameraCapture::set(int property, double value)
     }
 }
 
-void CameraCapture::get(int property, double &value)
+void CameraCapture::get(int property, double &value) const
 {
     v4l2_control c;
     c.id = property;
@@ -100,7 +98,6 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     else
     {
         updateFormat();
-        std::cout << "Format set to " << this->height << "x" << this->width << std::endl;
     }
 }
 
@@ -170,7 +167,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     }
 }
 
-std::pair<int, int> CameraCapture::getFormat() { return std::pair<int, int>(width, height); }
+std::pair<int, int> CameraCapture::getFormat() const { return std::pair<int, int>(width, height); }
 
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
@@ -216,14 +213,14 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
     buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
 
-void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) { frame = buffers[buffer_no]; }
+void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) const { frame = buffers[buffer_no]; }
 
-void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no)
+void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no) const
 {
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
-void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no)
+void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no)const
 {
     frame = new cv::Mat(height, width, dtype, buffers[buffer_no]->start);
 }
@@ -241,7 +238,7 @@ cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of
     }
     else
     {
-        std::cout << "No converter\n";
+        std::cerr << "WARNING: No converter provided - ommiting preprocessing\n";
     }
     return *frame;
 }

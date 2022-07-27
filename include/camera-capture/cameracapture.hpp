@@ -42,7 +42,7 @@ public:
      * On error throws CameraException
      * @param cap Structure which will be filled by the driver
      */
-    void getCapabilities(std::unique_ptr<v4l2_capability> &cap);
+    void getCapabilities(std::unique_ptr<v4l2_capability> &cap) const;
 
     /**
      * Set the camera setting to a given value
@@ -60,7 +60,7 @@ public:
      * @param property Ioctl code of the parameter
      * @param value Variable, which will be filled with value
      */
-    void get(int property, double &value);
+    void get(int property, double &value) const;
 
     /**
      * Set the camera frame format to a given value
@@ -93,7 +93,7 @@ public:
      * @param frame MMapBuffer where the raw frame data will be placed
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(std::shared_ptr<MMapBuffer> &frame, int buffer_no = 0);
+    void read(std::shared_ptr<MMapBuffer> &frame, int buffer_no = 0) const;
 
     /**
      * Return raw frame data
@@ -103,7 +103,7 @@ public:
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0);
+    void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0) const;
 
     /**
      * Return raw frame data
@@ -113,7 +113,7 @@ public:
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(cv::Mat *frame, int dtype, int buffer_no = 0);
+    void read(cv::Mat *frame, int dtype, int buffer_no = 0) const;
 
     /**
      * Grab, export to cv::Mat (and preprocess) frame
@@ -153,7 +153,7 @@ public:
      *
      * @return width and height currently set in the camera
      */
-    std::pair<int, int> getFormat();
+    std::pair<int, int> getFormat() const;
 
     /**
      * Close the camera
