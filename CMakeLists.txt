@@ -8,6 +8,7 @@ find_package( OpenCV REQUIRED )
 include_directories(
 	${OpenCV_INCLUDE_DIRS}
 	include
+    third-party/include/
 )
 
 add_library(${PROJECT_NAME} SHARED
@@ -15,6 +16,7 @@ add_library(${PROJECT_NAME} SHARED
     src/frameconverter.cpp
     src/frameconverters/raw2yuvconverter.cpp
     src/frameconverters/raw2bayerconverter.cpp
+    src/frameconverters/anyformat2bgrconverter.cpp
     src/cameracapture.cpp
 )
 

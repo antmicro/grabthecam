@@ -14,7 +14,7 @@ int xioctl(int fd, int request, void *arg)
 CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 {
     // Open the device
-    this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
+    this->fd = v4l2_open(filename.c_str(), O_RDWR);
 
     if (fd < 0)
     {
@@ -178,7 +178,6 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
 
     if (!ready_to_capture)
     {
-        // std::cout << "Preparing to capture...\n";
         requestBuffers(number_of_buffers, locations); // buffers in the device memory
 
         info_buffer = std::make_shared<v4l2_buffer>();
@@ -220,7 +219,7 @@ void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
-void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no)const
+void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no) const
 {
     frame = new cv::Mat(height, width, dtype, buffers[buffer_no]->start);
 }

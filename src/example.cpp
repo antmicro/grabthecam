@@ -1,17 +1,27 @@
-#include <sstream>
+#include <camera-capture/example.hpp>
 
-#include "camera-capture/cameracapture.hpp"
-#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
-#include <filesystem>            // checking if the directory exists
-#include <opencv2/imgcodecs.hpp> //imwrite
-#include <opencv2/imgproc.hpp>
-
-void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
+int xioctl(int fd, int request, void *arg)
 {
-    std::cout << "Saving " << filename << std::endl;
-    // check if directory exists
+    int res;
+    do
+    {
+        res = ioctl(fd, request, arg);
+    } while (-1 == res && EINTR == errno); // A signal was caught
+
+    return res;
+}
+
+void createDirectories(std::string filename)
+{
     std::filesystem::path path = filename;
     std::filesystem::create_directories(path.parent_path());
+}
+
+void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame)
+{
+    std::cout << "Saving " << filename << std::endl;
+
+    createDirectories(filename);
 
     // Write the data out to file
     std::ofstream out_file;
@@ -21,7 +31,7 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> info)
         throw CameraException("Cannot open the file to save. Check if file exists and you have permission to edit it.");
     }
 
-    out_file.write((char *)(info->start), info->bytesused);
+    out_file.write((char *)(frame->start), frame->bytesused);
     out_file.close();
 }
 
@@ -29,78 +39,168 @@ void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
 {
     std::cout << "Saving " << filename << std::endl;
 
-    // check if directory exists
-    std::filesystem::path path = filename;
-    std::filesystem::create_directories(path.parent_path());
-
+    createDirectories(filename);
     if (!cv::imwrite(filename, *frame.get()))
     {
         throw CameraException("Cannot save the processed Frame");
     }
 }
 
-int main(int argc, char const *argv[])
+void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int &input_format)
 {
-    std::cout << "\nSET CAMERA\n--------------------------\n";
+    std::shared_ptr<FrameConverter> converter; ///< converter to be used by the cameracapture object
 
-    // get camera capabilities
-    auto cap = std::make_unique<v4l2_capability>();
-
-    CameraCapture camera("/dev/video0");
-    camera.getCapabilities(cap);
-
-    if (!(cap->capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    switch (pix_format)
     {
-        std::cerr << "This is not a video capture device\n";
-        exit(EXIT_FAILURE);
+    case V4L2_PIX_FMT_YYUV:
+        converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_YUY2);
+        input_format = CV_8UC2;
+        break;
+
+    case V4L2_PIX_FMT_ABGR32:
+        converter = std::make_shared<AnyFormat2bgrConverter>(cv::COLOR_BGRA2RGB, CV_8UC3);
+        input_format = CV_8UC4;
+        break;
+
+    case V4L2_PIX_FMT_SRGGB8:
+        converter = std::make_shared<Raw2BayerConverter>(cv::COLOR_BayerRG2BGR, CV_8UC3);
+        input_format = CV_8UC1;
+        break;
+
+    case V4L2_PIX_FMT_SRGGB12:
+        converter = std::make_shared<Raw2BayerConverter>(cv::COLOR_BayerRG2BGR, CV_16UC3);
+        input_format = CV_16UC1;
+        break;
+
+    case V4L2_PIX_FMT_SRGGB10:
+        converter = std::make_shared<Raw2BayerConverter>(cv::COLOR_BayerRG2BGR, CV_16UC3);
+        input_format = CV_16UC1;
+        break;
+
+
+    default:
+        std::cerr << "Skipping conversion";
+        converter = nullptr;
+        raw = true;
+        input_format = CV_8UC1;
     }
 
-    if (!(cap->capabilities & V4L2_CAP_STREAMING))
-    {
-        std::cerr << "V4L2_CAP_STREAMING failed\n";
-        exit(EXIT_FAILURE);
-    }
-
-    // adjust camera settings
-    camera.setFormat(960, 720, V4L2_PIX_FMT_YYUV);
-    camera.set(V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL);
-
-    double val;
-    camera.get(V4L2_CID_EXPOSURE_AUTO, val);
-    std::cout << "Value of V4L2_CID_EXPOSURE_AUTO: " << val << std::endl;
-
-    std::cout << "\nCAPTURE YUV FRAMES\n--------------------------\n";
-
-    std::shared_ptr<MMapBuffer> raw_frame;
-    // std::shared_ptr<cv::Mat> raw_mat[3];
-    std::shared_ptr<cv::Mat> processed_frame;
-    // cv::Mat *raw_frame_raw_ptr;
-
-    std::shared_ptr<FrameConverter> converter = std::make_shared<Raw2YuvConverter>(cv::COLOR_YUV2BGR_YUY2);
     camera.setConverter(converter);
-
-    for (int i = 0; i < 3; i++)
-    {
-        camera.grab();
-        // camera.read(raw_frame);
-        // camera.read(raw_frame_raw_ptr, CV_8UC2);
-
-        // rawToFile("../out/raw_" + std::to_string(i) + ".raw", raw_frame);
-        // auto dims = camera.getFormat();
-        // processed_frame = std::make_shared<cv::Mat> (converter->convert(raw_frame, CV_8UC2, std::get<0>(dims),
-        // std::get<1>(dims)));
-
-        processed_frame = std::make_shared<cv::Mat>(camera.capture(CV_8UC2));
-        saveToFile("../out/processed_frame_" + std::to_string(i) + ".png", processed_frame);
-
 }
 
-    std::cout << "\nCAPTURE JPG FRAME\n--------------------------\n";
+Config parseOptions(int argc, char const *argv[])
+{
+    // Set available options
+    cxxopts::Options options("Camera-capture", "A demo for camera-capture – lightweight, easily adjustable library for "
+                                               "managing v4l cameras and capturing frames.");
 
-    camera.setConverter(nullptr);
-    camera.setFormat(960, 720, V4L2_PIX_FMT_MJPEG);
-    camera.grab();
-    camera.read(raw_frame);
-    rawToFile("../out/jpg.jpg", raw_frame);
+    options.add_options()("c, camera", "Filename of a camera device",
+                          cxxopts::value<std::string>()->default_value("/dev/video0"))(
+        "t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)", cxxopts::value<std::string>()) // TODO: more formats
+        ("o, out", "Path to save the frame", cxxopts::value<std::string>()->default_value("../out/frame"))(
+            "d, dims", "Frame width and height",
+            cxxopts::value<std::vector<int>>()->default_value("960,720"))("h, help", "Print usage");
+
+    std::unordered_map<std::string, unsigned int> pix_formats = {// TODO: more formats
+                                                                 {"YUYV", V4L2_PIX_FMT_YYUV},
+                                                                 {"JPG", V4L2_PIX_FMT_MJPEG},
+                                                                 {"BGRA", V4L2_PIX_FMT_ABGR32 },
+                                                                 {"AR24", V4L2_PIX_FMT_ABGR32},
+                                                                 {"RGGB", V4L2_PIX_FMT_SRGGB8 },
+                                                                 {"RG10", V4L2_PIX_FMT_SRGGB10},
+                                                                 {"RG12", V4L2_PIX_FMT_SRGGB12}};
+
+    // Get command line parameters and parse them
+    auto result = options.parse(argc, argv);
+
+    if (result.count("help"))
+    {
+        std::cout << options.help() << std::endl;
+        exit(0);
+    }
+
+    Config config;
+    try
+    {
+        config.camera_filename = result["camera"].as<std::string>();
+        config.type = result["type"].as<std::string>();
+        config.out_filename = result["out"].as<std::string>();
+        config.dims = result["dims"].as<std::vector<int>>();
+
+        config.pix_format = pix_formats.at(config.type);
+    }
+    catch (cxxopts::OptionException e)
+    {
+        std::cerr << std::endl
+                  << "\033[31mError while parsing command line arguments: " << e.what() << "\033[0m" << std::endl
+                  << std::endl;
+        std::cout << options.help() << std::endl;
+        exit(1);
+    }
+    catch (std::out_of_range e)
+    {
+        std::cerr << std::endl
+                  << "\033[31mError while parsing command line arguments: Wrong value '" << config.type
+                  << "' for parameter 'type'\033[0m"
+                  << std::endl<< std::endl;
+        std::cout << options.help() << std::endl;
+        exit(1);
+    }
+
+    return config;
+}
+
+int main(int argc, char const *argv[])
+{
+    // SET UP THE CAMERA
+    bool raw = false;
+    int input_format;
+
+    Config conf = parseOptions(argc, argv);     ///< user's configuration
+    CameraCapture camera(conf.camera_filename); ///< cameracapture object
+
+    // adjust camera settings
+    camera.setFormat(conf.dims[0], conf.dims[1], conf.pix_format); // set frame format
+    auto format = camera.getFormat();                              ///< Actually set frame formati
+    double time_perframe;
+
+    v4l2_streamparm strparams = {};
+    strparams.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    // auto res = xioctl(camera.getFd(), VIDIOC_G_PARM, &strparams);
+    // if (res < 0)
+    // {
+    //     throw CameraException("Getting params " + std::to_string(errno) + ": " + std::string(strerror(errno)));
+    // }
+
+    v4l2_format fmt = {0};
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+    if (xioctl(camera.getFd(), VIDIOC_G_FMT, &fmt) < 0)
+    {
+        throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
+    }
+
+    // auto fps = strparams.parm.capture.timeperframe;
+    std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x " << std::get<1>(format) << std::endl;
+    // std::cout << fmt.fmt.pix.pixelformat << " " << fps.numerator << "/" << fps.denominator << std::endl;
+
+
+
+    // CAPTURE FRAME
+    setConverter(camera, conf.pix_format, raw, input_format);
+
+    if (!raw)
+    {
+        auto processed_frame = std::make_shared<cv::Mat>(camera.capture(input_format)); ///< captured frame
+        saveToFile(conf.out_filename + ".png", processed_frame);                   // save it
+    }
+    else
+    {
+        std::shared_ptr<MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
+        camera.grab();                                             // fetch the frame to camera's buffer 0
+        camera.read(raw_frame);                                    // read content from the buffer
+        rawToFile(conf.out_filename + "." + conf.type, raw_frame); // save it
+    }
     return 0;
 }

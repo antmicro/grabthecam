@@ -6,4 +6,3 @@ cv::Mat Raw2YuvConverter::convert(cv::Mat src)
     cv::cvtColor(src, processed_frame, code);
     return processed_frame;
 }
-
