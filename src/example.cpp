@@ -164,6 +164,8 @@ int main(int argc, char const *argv[])
     auto format = camera.getFormat();                              ///< Actually set frame formati
     double time_perframe;
 
+    camera.set(V4L2_CID_EXPOSURE_AUTO, 1);
+
     v4l2_streamparm strparams = {};
     strparams.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 

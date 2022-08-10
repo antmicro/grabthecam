@@ -10,6 +10,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include <cstddef>
+#include <concepts>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -19,6 +21,9 @@
 #include "camera-capture/mmapbuffer.hpp"
 #include "camera-capture/utils.hpp"
 #include <opencv2/core/mat.hpp>
+
+template<typename T>
+concept Numeric = std::integral<T> or std::floating_point<T>;
 
 /**
  * Handles capturing frames from v4l cameras
@@ -51,7 +56,11 @@ public:
      * @param property Ioctl code of the parameter to change
      * @param value Value for the parameter
      */
-    void set(int property, double value);
+    template <typename T>
+    int set(int ioctl, T value);
+
+    template <Numeric T>
+    int set(int property, T value);
 
     /**
      * Get the camera setting value

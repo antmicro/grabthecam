@@ -1,4 +1,5 @@
 #include "camera-capture/cameracapture.hpp"
+#include "camera-capture/cameracapturetemplates.hpp"
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -36,17 +37,6 @@ void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap) const
     if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
     {
         throw CameraException("Error in VIDIOC_QUERYCAP. See errno for more information");
-    }
-}
-
-void CameraCapture::set(int property, double value)
-{
-    v4l2_control c;
-    c.id = property;
-    c.value = value;
-    if (v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) != 0)
-    {
-        throw CameraException("Setting property failed. See errno and VIDEOC_S_CTRL docs for more information");
     }
 }
 
@@ -91,7 +81,7 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     fmt.fmt.pix.height = height;
     fmt.fmt.pix.pixelformat = pixelformat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    if (xioctl(this->fd, VIDIOC_S_FMT, &fmt) < 0)
+    if (this->set(VIDIOC_S_FMT, &fmt) < 0)
     {
         throw CameraException("Setting format failed. See errno and VIDEOC_S_FMT docs for more information");
     }
