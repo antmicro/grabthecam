@@ -1,16 +1,5 @@
 #include <camera-capture/example.hpp>
 
-int xioctl(int fd, int request, void *arg)
-{
-    int res;
-    do
-    {
-        res = ioctl(fd, request, arg);
-    } while (-1 == res && EINTR == errno); // A signal was caught
-
-    return res;
-}
-
 void createDirectories(std::string filename)
 {
     std::filesystem::path path = filename;
@@ -164,12 +153,15 @@ int main(int argc, char const *argv[])
     auto format = camera.getFormat();                              ///< Actually set frame formati
     double time_perframe;
 
+    //TESTS
+    v4l2_capability cap; 
     camera.set(V4L2_CID_EXPOSURE_AUTO, 1);
+    camera.get(VIDIOC_QUERYCAP, &cap);
 
     v4l2_streamparm strparams = {};
     strparams.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    // auto res = xioctl(camera.getFd(), VIDIOC_G_PARM, &strparams);
+    // auto res = camera.get(VIDIOC_G_PARM, &strparams);
     // if (res < 0)
     // {
     //     throw CameraException("Getting params " + std::to_string(errno) + ": " + std::string(strerror(errno)));
@@ -178,7 +170,7 @@ int main(int argc, char const *argv[])
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (xioctl(camera.getFd(), VIDIOC_G_FMT, &fmt) < 0)
+    if (camera.get(VIDIOC_G_FMT, &fmt))
     {
         throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
     }

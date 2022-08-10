@@ -42,25 +42,34 @@ public:
     CameraCapture(std::string filename);
 
     /**
-     * Obtain information about driver and hardware capabilities.
+     * Run an Ioctl with a given value
      *
      * On error throws CameraException
-     * @param cap Structure which will be filled by the driver
-     */
-    void getCapabilities(std::unique_ptr<v4l2_capability> &cap) const;
-
-    /**
-     * Set the camera setting to a given value
-     *
-     * On error throws CameraException
-     * @param property Ioctl code of the parameter to change
+     * @param ioctl Ioctl code to run
      * @param value Value for the parameter
      */
     template <typename T>
     int set(int ioctl, T value);
 
+    /*
+     * Set camera setting to a given value
+     *
+     * On error throws CameraException
+     * @param property Ioctl code of the parameter to change
+     * @param value Value for the parameter
+     */
     template <Numeric T>
     int set(int property, T value);
+
+    /**
+     * Get the camera setting value
+     *
+     * On error throws CameraException
+     * @param ioctl Ioctl code to run
+     * @param value Variable, which will be filled with value
+     */
+    template<typename T>
+    int get(int ioctl, T value) const;
 
     /**
      * Get the camera setting value
@@ -69,7 +78,8 @@ public:
      * @param property Ioctl code of the parameter
      * @param value Variable, which will be filled with value
      */
-    void get(int property, double &value) const;
+    template <Numeric T>
+    void get(int property, T value) const;
 
     /**
      * Set the camera frame format to a given value

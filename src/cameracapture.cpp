@@ -31,26 +31,6 @@ CameraCapture::~CameraCapture()
     v4l2_close(this->fd);
 }
 
-void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap) const
-{
-    // Ask the device if it can capture frames
-    if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
-    {
-        throw CameraException("Error in VIDIOC_QUERYCAP. See errno for more information");
-    }
-}
-
-void CameraCapture::get(int property, double &value) const
-{
-    v4l2_control c;
-    c.id = property;
-    if (v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) != 0)
-    {
-        throw CameraException("Getting property failed. See errno and VIDEOC_G_CTRL docs for more information");
-    }
-    value = c.value;
-}
-
 void CameraCapture::stopStreaming()
 {
     if (ready_to_capture)
