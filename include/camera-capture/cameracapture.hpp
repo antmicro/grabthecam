@@ -49,7 +49,7 @@ public:
      * @param value Value for the parameter
      */
     template <typename T>
-    int set(int ioctl, T value);
+    int set(int ioctl, T *value);
 
     /*
      * Set camera setting to a given value
@@ -69,7 +69,7 @@ public:
      * @param value Variable, which will be filled with value
      */
     template<typename T>
-    int get(int ioctl, T value) const;
+    int get(int ioctl, T *value) const;
 
     /**
      * Get the camera setting value
@@ -79,7 +79,7 @@ public:
      * @param value Variable, which will be filled with value
      */
     template <Numeric T>
-    void get(int property, T value) const;
+    void get(int property, T *value) const;
 
     /**
      * Set the camera frame format to a given value

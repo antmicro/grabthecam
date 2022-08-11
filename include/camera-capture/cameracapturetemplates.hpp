@@ -1,7 +1,7 @@
 # include "camera-capture/cameracapture.hpp"
 
 template <typename T>
-int CameraCapture::set(int ioctl, T value)
+int CameraCapture::set(int ioctl, T *value)
 {
     int res = v4l2_ioctl(this->fd, ioctl, value);
     switch(res)
@@ -15,7 +15,7 @@ int CameraCapture::set(int ioctl, T value)
 }
 
 template<Numeric T>
-int CameraCapture::set(int property, T  value)
+int CameraCapture::set(int property, T value)
 {
     v4l2_control c;
     c.id = property;
@@ -29,10 +29,8 @@ int CameraCapture::set(int property, T  value)
 }
 
 template<typename T>
-int CameraCapture::get(int ioctl, T value) const
+int CameraCapture::get(int ioctl, T *value) const
 {
-    //TODO: T should be a pointer or reference
-    //BUG: cannot pass uniqueptr
     int res = v4l2_ioctl(this->fd, ioctl, value);
     if (res != 0)
     {
@@ -42,7 +40,7 @@ int CameraCapture::get(int ioctl, T value) const
 }
 
 template<Numeric T>
-void CameraCapture::get(int property, T value) const
+void CameraCapture::get(int property, T *value) const
 {
     v4l2_control c;
     c.id = property;

@@ -154,9 +154,9 @@ int main(int argc, char const *argv[])
     double time_perframe;
 
     //TESTS
-    v4l2_capability cap; 
+    auto cap = std::make_unique<v4l2_capability>();
     camera.set(V4L2_CID_EXPOSURE_AUTO, 1);
-    camera.get(VIDIOC_QUERYCAP, &cap);
+    camera.get(VIDIOC_QUERYCAP, cap.get());
 
     v4l2_streamparm strparams = {};
     strparams.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
