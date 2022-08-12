@@ -33,7 +33,7 @@ int CameraCapture::runIoctl(int ioctl, T *value) const
     int res = v4l2_ioctl(this->fd, ioctl, value);
     if (res !=0)
     {
-        std::string default_message = "Getting property failed: " + std::to_string(errno) + " (" + strerror(errno) + ")";
+        std::string default_message = "Running ioctl failed: " + std::to_string(errno) + " (" + strerror(errno) + ")";
         switch(errno)
         {
             case 22:
@@ -59,7 +59,7 @@ int CameraCapture::runIoctl(int ioctl, T *value) const
 
 
 template<Numeric T>
-int CameraCapture::get(int property, T *value) const
+int CameraCapture::get(int property, T *value, bool current) const
 {
     int res;
 
@@ -73,7 +73,14 @@ int CameraCapture::get(int property, T *value) const
 
         v4l2_ext_controls ctrls;
         memset(&ctrls, 0, sizeof(ctrls));
-        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL; //TODO: add get default
+        if (current)
+        {
+            ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        }
+        else
+        {
+            ctrls.which = V4L2_CTRL_WHICH_DEF_VAL;
+        }
         ctrls.count = 1;
         ctrls.controls = ctrl;
         res = this->runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);

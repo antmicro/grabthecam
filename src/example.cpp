@@ -185,10 +185,19 @@ int main(int argc, char const *argv[])
             if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
                 continue;
 
-            std::cout << "Control " << queryctrl.id << " " << queryctrl.name;
+            std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
             camera.get(queryctrl.id, &value);
-            std::cout << value << std::endl << std::endl;
-            camera.set(queryctrl.id, 0);
+            std::cout << value << " default: " ;
+            camera.get(queryctrl.id, &value, false);
+            try
+            {
+                std::cout << value << std::endl;
+                camera.set(queryctrl.id, value);
+            }
+            catch (CameraException e)
+            {
+                std::cout << e.what()<<std::endl;
+            }
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
                 enumerate_menu(camera.getFd());
@@ -220,18 +229,6 @@ int main(int argc, char const *argv[])
         }
     }
     std::cout << std::endl;
-    // /////////////////////////////////////////
-
-    // int value;
-    std::cout << "exposure auto - camera\n";
-    camera.get(V4L2_CID_EXPOSURE_AUTO, &value);
-    std::cout << value << std::endl;
-
-    std::cout << "gain - user\n";
-    camera.get(0x00980913, &value);
-    std::cout << value << std::endl;
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
     v4l2_format fmt = {0};

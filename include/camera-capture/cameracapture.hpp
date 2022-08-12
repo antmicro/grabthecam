@@ -66,12 +66,11 @@ public:
      *
      * On error throws CameraException
      * @param property Ioctl code of the parameter
-     * @param value Variable, which will be filled with value
-     *
-     * @return
+     * @param value Numeric (int, float, bool...) variable, which will be filled with value
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      */
     template <Numeric T>
-    int get(int property, T *value) const;
+    int get(int property, T *value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
