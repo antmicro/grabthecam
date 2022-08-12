@@ -236,7 +236,7 @@ int main(int argc, char const *argv[])
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    camera.get(VIDIOC_G_FMT, &fmt);
+    camera.runIoctl(VIDIOC_G_FMT, &fmt);
 
     std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x " << std::get<1>(format) << std::endl;
 

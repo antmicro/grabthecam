@@ -41,16 +41,6 @@ public:
      */
     CameraCapture(std::string filename);
 
-    /**
-     * Run an Ioctl with a given value
-     *
-     * On error throws CameraException
-     * @param ioctl Ioctl code to run
-     * @param value Value for the parameter
-     */
-    template <typename T>
-    int set(int ioctl, T *value);
-
     /*
      * Set camera setting to a given value
      *
@@ -62,14 +52,14 @@ public:
     int set(int property, T value);
 
     /**
-     * Get the camera setting value
+     * Run ioctl code
      *
      * On error throws CameraException
      * @param ioctl Ioctl code to run
-     * @param value Variable, which will be filled with value
+     * @param value Structure, which will be used in this execution
      */
     template<typename T>
-    int get(int ioctl, T *value) const;
+    int runIoctl(int ioctl, T *value) const;
 
     /**
      * Get the camera setting value
@@ -77,8 +67,8 @@ public:
      * On error throws CameraException
      * @param property Ioctl code of the parameter
      * @param value Variable, which will be filled with value
-     * 
-     * @return 
+     *
+     * @return
      */
     template <Numeric T>
     int get(int property, T *value) const;

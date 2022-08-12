@@ -27,7 +27,7 @@ CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 CameraCapture::~CameraCapture()
 {
     // end streaming
-    xioctl(fd, VIDIOC_STREAMOFF, &buffer_type);
+    runIoctl(VIDIOC_STREAMOFF, &buffer_type);
     v4l2_close(this->fd);
 }
 
@@ -61,7 +61,7 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     fmt.fmt.pix.height = height;
     fmt.fmt.pix.pixelformat = pixelformat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    if (this->set(VIDIOC_S_FMT, &fmt) < 0)
+    if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
     {
         throw CameraException("Setting format failed. See errno and VIDEOC_S_FMT docs for more information");
     }
@@ -76,7 +76,7 @@ void CameraCapture::updateFormat()
     v4l2_format fmt = {0};
     fmt.type = buffer_type;
 
-    if (xioctl(this->fd, VIDIOC_G_FMT, &fmt) < 0)
+    if (xioctl(fd, VIDIOC_G_FMT, &fmt) < 0)
     {
         throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
     }
@@ -92,7 +92,7 @@ int CameraCapture::queryProperty(int property) const
     memset(&queryctrl, 0, sizeof(queryctrl));
     queryctrl.id = property;
 
-    int res = ioctl(this->fd, VIDIOC_QUERYCTRL, &queryctrl);
+    int res = xioctl(this->fd, VIDIOC_QUERYCTRL, &queryctrl);
     std::string default_message = "VIDIOC_QUERYCTRL: " + std::to_string(errno) + strerror(errno);
 
     if (res == -1)
