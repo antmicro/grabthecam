@@ -3,11 +3,28 @@
 template<Numeric T>
 int CameraCapture::set(int property, T value)
 {
-    std::cout << value << " numeric set\n";
-    v4l2_control c;
-    c.id = property;
-    c.value = value;
-    return this->runIoctl(VIDIOC_S_CTRL, &c);
+    int res;
+
+    res = queryProperty(property);
+    if (res == 0)
+    {
+        v4l2_ext_control ctrl[1];
+        memset(&ctrl, 0, sizeof(ctrl));
+        ctrl[0].id = property;
+        ctrl[0].size = 0;
+
+        //TODO: VIDIOC_TRY_EXT_CTRLS
+        //TODO: handle different control types https://www.kernel.org/doc/html/v5.0/media/uapi/v4l/vidioc-g-ext-ctrls.html#description
+        ctrl[0].value = value;
+
+        v4l2_ext_controls ctrls;
+        memset(&ctrls, 0, sizeof(ctrls));
+        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        ctrls.count = 1;
+        ctrls.controls = ctrl;
+        res = this->runIoctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+    }
+    return res;
 }
 
 template<typename T>
@@ -45,7 +62,6 @@ template<Numeric T>
 int CameraCapture::get(int property, T *value) const
 {
     int res;
-    struct v4l2_control control;
 
     res = queryProperty(property);
     if (res == 0)
@@ -53,11 +69,11 @@ int CameraCapture::get(int property, T *value) const
         v4l2_ext_control ctrl[1];
         memset(&ctrl, 0, sizeof(ctrl));
         ctrl[0].id = property;
-        ctrl[0].size = 0;
+        ctrl[0].size = 0; //TODO: check if size was set correctly
 
         v4l2_ext_controls ctrls;
         memset(&ctrls, 0, sizeof(ctrls));
-        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL; //TODO: add get default
         ctrls.count = 1;
         ctrls.controls = ctrl;
         res = this->runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);

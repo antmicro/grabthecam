@@ -188,6 +188,7 @@ int main(int argc, char const *argv[])
             std::cout << "Control " << queryctrl.id << " " << queryctrl.name;
             camera.get(queryctrl.id, &value);
             std::cout << value << std::endl << std::endl;
+            camera.set(queryctrl.id, 0);
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
                 enumerate_menu(camera.getFd());
