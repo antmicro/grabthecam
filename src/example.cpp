@@ -139,6 +139,27 @@ Config parseOptions(int argc, char const *argv[])
     return config;
 }
 
+
+struct v4l2_queryctrl queryctrl;
+struct v4l2_querymenu querymenu;
+static void enumerate_menu(int fd)
+{
+
+    printf("\n  Menu items:\n");
+
+    memset(&querymenu, 0, sizeof(querymenu));
+    querymenu.id = queryctrl.id;
+
+    for (querymenu.index = queryctrl.minimum;
+         querymenu.index <= queryctrl.maximum;
+         querymenu.index++) {
+        if (0 == ioctl(fd, VIDIOC_QUERYMENU, &querymenu)) {
+            printf("  %s\n", querymenu.name);
+        }
+    }
+}
+
+
 int main(int argc, char const *argv[])
 {
     // SET UP THE CAMERA
@@ -150,36 +171,74 @@ int main(int argc, char const *argv[])
 
     // adjust camera settings
     camera.setFormat(conf.dims[0], conf.dims[1], conf.pix_format); // set frame format
-    auto format = camera.getFormat();                              ///< Actually set frame formati
+    auto format = camera.getFormat();                              ///< Actually set frame format
     double time_perframe;
 
-    //TESTS
-    auto cap = std::make_unique<v4l2_capability>();
-    camera.set(V4L2_CID_EXPOSURE_AUTO, 1);
-    camera.get(VIDIOC_QUERYCAP, cap.get());
+///////////////
+    int value;
+    std::cout << "\nCONTROLS\n";
 
-    v4l2_streamparm strparams = {};
-    strparams.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    memset(&queryctrl, 0, sizeof(queryctrl));
 
-    // auto res = camera.get(VIDIOC_G_PARM, &strparams);
-    // if (res < 0)
-    // {
-    //     throw CameraException("Getting params " + std::to_string(errno) + ": " + std::string(strerror(errno)));
-    // }
+    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++) {
+        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl)) {
+            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+                continue;
+
+            std::cout << "Control " << queryctrl.id << " " << queryctrl.name << std::endl;
+            camera.get(queryctrl.id, &value);
+            std::cout << value << std::endl << std::endl;
+
+            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+                enumerate_menu(camera.getFd());
+        } else {
+            if (errno == EINVAL)
+                continue;
+
+            perror("VIDIOC_QUERYCTRL");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    std::cout << "Private Base: \n";
+    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;queryctrl.id++) {
+        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl)) {
+            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+                continue;
+
+            printf("Control %s\n", queryctrl.name);
+
+            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+                enumerate_menu(camera.getFd());
+        } else {
+            if (errno == EINVAL)
+                break;
+
+            perror("VIDIOC_QUERYCTRL");
+            exit(EXIT_FAILURE);
+        }
+    }
+    std::cout << std::endl;
+    // /////////////////////////////////////////
+
+    // int value;
+    std::cout << "exposure auto - camera\n";
+    camera.get(V4L2_CID_EXPOSURE_AUTO, &value);
+    std::cout << value << std::endl;
+
+    std::cout << "gain - user\n";
+    camera.get(0x00980913, &value);
+    std::cout << value << std::endl;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
 
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (camera.get(VIDIOC_G_FMT, &fmt))
-    {
-        throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
-    }
+    camera.get(VIDIOC_G_FMT, &fmt);
 
-    // auto fps = strparams.parm.capture.timeperframe;
     std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x " << std::get<1>(format) << std::endl;
-    // std::cout << fmt.fmt.pix.pixelformat << " " << fps.numerator << "/" << fps.denominator << std::endl;
-
-
 
     // CAPTURE FRAME
     setConverter(camera, conf.pix_format, raw, input_format);
