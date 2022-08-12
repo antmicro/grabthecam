@@ -85,6 +85,34 @@ void CameraCapture::updateFormat()
     this->width = fmt.fmt.pix.width;
 }
 
+int CameraCapture::queryProperty(int property) const
+{
+    struct v4l2_queryctrl queryctrl;
+
+    memset(&queryctrl, 0, sizeof(queryctrl));
+    queryctrl.id = property;
+
+    int res = ioctl(this->fd, VIDIOC_QUERYCTRL, &queryctrl);
+    std::string default_message = "VIDIOC_QUERYCTRL: " + std::to_string(errno) + strerror(errno);
+
+    if (res == -1)
+    {
+        if (errno != EINVAL)
+        {
+            throw CameraException(default_message);
+        }
+        else
+        {
+            throw CameraException(default_message + "\nProperty is not supported.");
+        }
+    }
+    else if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+    {
+        throw CameraException(default_message + "\nProperty is disabled.");
+    }
+    return res;
+}
+
 void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
 {
     if (locations.size() == 0)

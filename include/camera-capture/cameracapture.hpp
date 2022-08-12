@@ -77,9 +77,11 @@ public:
      * On error throws CameraException
      * @param property Ioctl code of the parameter
      * @param value Variable, which will be filled with value
+     * 
+     * @return 
      */
     template <Numeric T>
-    void get(int property, T *value) const;
+    int get(int property, T *value) const;
 
     /**
      * Set the camera frame format to a given value
@@ -180,6 +182,15 @@ public:
     ~CameraCapture();
 
 private:
+
+    /**
+     * Check if the camera supports the property
+     *
+     * @param property Property to check
+     * @return Result of the VIDIOC_QUERYCTL
+     */
+    int queryProperty(int property) const;
+
     /**
      * Get current width and height. Set relevants fields.
      *

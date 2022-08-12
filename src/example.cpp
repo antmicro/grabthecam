@@ -185,7 +185,7 @@ int main(int argc, char const *argv[])
             if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
                 continue;
 
-            std::cout << "Control " << queryctrl.id << " " << queryctrl.name << std::endl;
+            std::cout << "Control " << queryctrl.id << " " << queryctrl.name;
             camera.get(queryctrl.id, &value);
             std::cout << value << std::endl << std::endl;
 

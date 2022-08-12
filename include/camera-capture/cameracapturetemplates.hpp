@@ -33,7 +33,6 @@ int CameraCapture::set(int property, T value)
 template<typename T>
 int CameraCapture::get(int ioctl, T *value) const
 {
-    std::cout<<"get\n";
     int res = v4l2_ioctl(this->fd, ioctl, value);
     if (res !=0)
     {
@@ -56,48 +55,30 @@ int CameraCapture::get(int ioctl, T *value) const
     return res;
 }
 
+
+
+
 template<Numeric T>
-void CameraCapture::get(int property, T *value) const
+int CameraCapture::get(int property, T *value) const
 {
-    std::cout << *value << " numeric get\n";
-    //TODO:return res
+    int res;
+    struct v4l2_control control;
 
-    // struct v4l2_queryctrl queryctrl;
-    // struct v4l2_control control;
+    res = queryProperty(property);
+    if (res == 0)
+    {
+        v4l2_ext_control ctrl[1];
+        memset(&ctrl, 0, sizeof(ctrl));
+        ctrl[0].id = property;
+        ctrl[0].size = 0;
 
-    // memset(&queryctrl, 0, sizeof(queryctrl));
-    // queryctrl.id = property;
-
-    // if (-1 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
-    //         if (errno != EINVAL) {
-    //                     perror("VIDIOC_QUERYCTRL");
-    //                             exit(EXIT_FAILURE);
-    //         } else {
-    //                     printf("propertry is not supportedn");
-    //         }
-    // } else if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
-    //         printf("property is not supportedn (disabled)");
-    // } else {
-    //     memset(&control, 0, sizeof (control));
-    //     control.id = property;
-    //     control.value = queryctrl.default_value;
-
-    //     if (-1 == ioctl(fd, VIDIOC_S_CTRL, &control)) {
-    //         perror("VIDIOC_S_CTRL"); //TODO: change
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     }
-    // *value = control.value;
-
-    v4l2_ext_control c[1];
-    memset(&c, 0, sizeof(c));
-    c[0].id = property;
-    c[0].size = 0;
-
-    v4l2_ext_controls ctls;
-    memset(&ctls, 0, sizeof(ctls));
-    ctls.which = V4L2_CTRL_WHICH_CUR_VAL;
-    ctls.count = 1;
-    ctls.controls = c;
-    this->get(VIDIOC_G_EXT_CTRLS, &ctls);
-    *value = ctls.controls[0].value;
+        v4l2_ext_controls ctrls;
+        memset(&ctrls, 0, sizeof(ctrls));
+        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        ctrls.count = 1;
+        ctrls.controls = ctrl;
+        res = this->get(VIDIOC_G_EXT_CTRLS, &ctrls);
+        *value = ctrls.controls[0].value;
+    }
+    return res;
+}
