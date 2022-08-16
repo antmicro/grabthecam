@@ -19,15 +19,11 @@ public:
      *
      * @param msg Exception description
      */
-    CameraException(std::string msg, int error_code = 0) : error_code(error_code)
-    {
-        setMessage(msg);
-    }
-
+    CameraException(std::string msg, int error_code = 0) : error_code(error_code) { setMessage(msg); }
 
     void setMessage(std::string text)
     {
-        if(error_code != 0)
+        if (error_code != 0)
         {
             msg = std::to_string(error_code) + " " + strerror(error_code) + "\n" + text;
         }
@@ -42,12 +38,9 @@ public:
      *
      * @return Message, which explains the error
      */
-    const char *what() const throw() override
-    {
-        return msg.c_str();
-    }
+    const char *what() const throw() override { return msg.c_str(); }
 
-    int error_code;  ///< linux error code (0 if not related)
+    int error_code; ///< linux error code (0 if not related)
 
 private:
     std::string msg; ///< description

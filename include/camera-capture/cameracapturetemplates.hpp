@@ -1,13 +1,13 @@
-# include "camera-capture/cameracapture.hpp"
+#include "camera-capture/cameracapture.hpp"
 
-template<Numeric T>
-int CameraCapture::set(int property, T value)
+template <Numeric T> int CameraCapture::set(int property, T value)
 {
     v4l2_ext_control ctrl[1];
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl[0].value = value;
 
-    //TODO: handle different control types https://www.kernel.org/doc/html/v5.0/media/uapi/v4l/vidioc-g-ext-ctrls.html#description
+    // TODO: handle different control types
+    // https://www.kernel.org/doc/html/v5.0/media/uapi/v4l/vidioc-g-ext-ctrls.html#description
     // switch(queryctrl.type)
     // {
     //     case V4L2_CTRL_TYPE_INTEGER64:
@@ -33,12 +33,10 @@ int CameraCapture::set(int property, T value)
     //         ctrl[0].value = value;
     // }
 
-
     return setCtrl(property, ctrl);
 }
 
-template<Numeric T>
-int CameraCapture::get(int property, T *value, bool current) const
+template <Numeric T> int CameraCapture::get(int property, T *value, bool current) const
 {
     v4l2_ext_controls ctrls;
     int res = getCtrls(property, current, ctrls);
@@ -46,4 +44,3 @@ int CameraCapture::get(int property, T *value, bool current) const
 
     return res;
 }
-

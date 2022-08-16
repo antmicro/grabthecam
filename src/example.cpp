@@ -66,7 +66,6 @@ void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int
         input_format = CV_16UC1;
         break;
 
-
     default:
         std::cerr << "Skipping conversion";
         converter = nullptr;
@@ -85,7 +84,8 @@ Config parseOptions(int argc, char const *argv[])
 
     options.add_options()("c, camera", "Filename of a camera device",
                           cxxopts::value<std::string>()->default_value("/dev/video0"))(
-        "t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)", cxxopts::value<std::string>()) // TODO: more formats
+        "t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",
+        cxxopts::value<std::string>()) // TODO: more formats
         ("o, out", "Path to save the frame", cxxopts::value<std::string>()->default_value("../out/frame"))(
             "d, dims", "Frame width and height",
             cxxopts::value<std::vector<int>>()->default_value("960,720"))("h, help", "Print usage");
@@ -130,8 +130,8 @@ Config parseOptions(int argc, char const *argv[])
     {
         std::cerr << std::endl
                   << "\033[31mError while parsing command line arguments: Wrong value '" << config.type
-                  << "' for parameter 'type'\033[0m"
-                  << std::endl<< std::endl;
+                  << "' for parameter 'type'\033[0m" << std::endl
+                  << std::endl;
         std::cout << options.help() << std::endl;
         exit(1);
     }
@@ -139,10 +139,9 @@ Config parseOptions(int argc, char const *argv[])
     return config;
 }
 
-
 struct v4l2_queryctrl queryctrl;
 struct v4l2_querymenu querymenu;
-static void enumerate_menu(int fd)
+static void enumerateMenu(int fd)
 {
 
     printf("\n  Menu items:\n");
@@ -150,15 +149,14 @@ static void enumerate_menu(int fd)
     memset(&querymenu, 0, sizeof(querymenu));
     querymenu.id = queryctrl.id;
 
-    for (querymenu.index = queryctrl.minimum;
-         querymenu.index <= queryctrl.maximum;
-         querymenu.index++) {
-        if (0 == ioctl(fd, VIDIOC_QUERYMENU, &querymenu)) {
+    for (querymenu.index = queryctrl.minimum; querymenu.index <= queryctrl.maximum; querymenu.index++)
+    {
+        if (0 == ioctl(fd, VIDIOC_QUERYMENU, &querymenu))
+        {
             printf("  %s\n", querymenu.name);
         }
     }
 }
-
 
 int main(int argc, char const *argv[])
 {
@@ -174,20 +172,24 @@ int main(int argc, char const *argv[])
     auto format = camera.getFormat();                              ///< Actually set frame format
     double time_perframe;
 
-///////////////
+    ///////////////
     int value;
     std::cout << "\nCONTROLS\n";
 
     memset(&queryctrl, 0, sizeof(queryctrl));
 
-    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++) {
-        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl)) {
+    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++)
+    {
+        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl))
+        {
             if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+            {
                 continue;
+            }
 
             std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
             camera.get(queryctrl.id, &value);
-            std::cout << value << " default: " ;
+            std::cout << value << " default: ";
             camera.get(queryctrl.id, &value, false);
             try
             {
@@ -196,14 +198,20 @@ int main(int argc, char const *argv[])
             }
             catch (CameraException e)
             {
-                std::cout << e.what()<<std::endl;
+                std::cout << e.what() << std::endl;
             }
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-                enumerate_menu(camera.getFd());
-        } else {
+            {
+                enumerateMenu(camera.getFd());
+            }
+        }
+        else
+        {
             if (errno == EINVAL)
+            {
                 continue;
+            }
 
             perror("VIDIOC_QUERYCTRL");
             exit(EXIT_FAILURE);
@@ -211,18 +219,28 @@ int main(int argc, char const *argv[])
     }
 
     std::cout << "Private Base: \n";
-    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;;queryctrl.id++) {
-        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl)) {
+    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;; queryctrl.id++)
+    {
+        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl))
+        {
             if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+            {
                 continue;
+            }
 
             printf("Control %s\n", queryctrl.name);
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-                enumerate_menu(camera.getFd());
-        } else {
+            {
+                enumerateMenu(camera.getFd());
+            }
+        }
+        else
+        {
             if (errno == EINVAL)
+            {
                 break;
+            }
 
             perror("VIDIOC_QUERYCTRL");
             exit(EXIT_FAILURE);
@@ -231,19 +249,20 @@ int main(int argc, char const *argv[])
     std::cout << std::endl;
     camera.set(V4L2_CID_SHARPNESS, 128);
     camera.get(V4L2_CID_SHARPNESS, &value);
-    std::cout << "sharpness " << value << std::endl; 
+    std::cout << "sharpness " << value << std::endl;
 
     bool boolvalue;
     camera.get(9963788, &boolvalue);
-    
-///////////////////////////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     v4l2_format fmt = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     camera.runIoctl(VIDIOC_G_FMT, &fmt);
 
-    std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x " << std::get<1>(format) << std::endl;
+    std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x "
+              << std::get<1>(format) << std::endl;
 
     // CAPTURE FRAME
     setConverter(camera, conf.pix_format, raw, input_format);
@@ -251,7 +270,7 @@ int main(int argc, char const *argv[])
     if (!raw)
     {
         auto processed_frame = std::make_shared<cv::Mat>(camera.capture(input_format)); ///< captured frame
-        saveToFile(conf.out_filename + ".png", processed_frame);                   // save it
+        saveToFile(conf.out_filename + ".png", processed_frame);                        // save it
     }
     else
     {
