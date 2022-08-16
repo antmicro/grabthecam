@@ -176,9 +176,11 @@ private:
      * Check if the camera supports the property
      *
      * @param property Property to check
+     * @param query The structure, where the results should be stored. It should be empty.
+     *
      * @return Result of the VIDIOC_QUERYCTL
      */
-    int queryProperty(int property) const;
+    int queryProperty(int property, v4l2_queryctrl *query) const;
 
     /**
      * Get current width and height. Set relevants fields.
