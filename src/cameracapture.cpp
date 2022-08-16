@@ -21,7 +21,9 @@ CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
     {
         throw CameraException("Failed to open the camera");
     }
+
     ready_to_capture = false;
+    updateFormat();
 }
 
 CameraCapture::~CameraCapture()
@@ -127,7 +129,6 @@ int CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrls
 
     v4l2_queryctrl queryctrl;
     res = queryProperty(property, &queryctrl);
-    // std::cout << "type " << queryctrl.type << std::endl;
     if (res == 0)
     {
         v4l2_ext_control ctrl[1];
@@ -148,9 +149,6 @@ int CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrls
         {
             switch (e.error_code)
             {
-            case EACCES:
-                std::cerr << "err 13 you shell not pass\n"; // TODO delete
-                break;
             case EINVAL:
                 throw CameraException("Check if your stucture is valid and you've filled all required fields.",
                                       e.error_code);
@@ -167,9 +165,11 @@ int CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrls
     return res;
 }
 
-int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
+int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
 {
     int res;
+    int value = ctrl[0].value;
+
     ctrl[0].id = property;
     ctrl[0].size = 0;
 
@@ -177,7 +177,6 @@ int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
     res = queryProperty(property, &queryctrl);
     if (res == 0)
     {
-        // TODO: VIDIOC_TRY_EXT_CTRLS
         v4l2_ext_controls ctrls;
         memset(&ctrls, 0, sizeof(ctrls));
         ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
@@ -192,9 +191,6 @@ int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
         {
             switch (e.error_code)
             {
-            case EACCES:
-                std::cerr << "err 13 you shell not pass\n"; // TODO delete
-                break;
             case EINVAL:
                 throw CameraException("Check if your stucture is valid and you've filled all required fields.",
                                       e.error_code);
@@ -203,6 +199,7 @@ int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
                 throw CameraException("Wrong parameter value. It should be between " +
                                       std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) +
                                       " (step: " + std::to_string(queryctrl.step) + ")");
+                // TODO: warning if the value is clamped?
                 break;
             case EILSEQ:
                 throw CameraException("Check if your change is compatible with other camera settings.", e.error_code);
@@ -211,8 +208,13 @@ int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
                 throw CameraException("", e.error_code);
             }
         }
-        // TODO:
-        // warning if the value is clamped?
+    }
+
+    if (warning && value != ctrl[0].value)
+    {
+        std::cerr << "\n[WARNING] Parameter's value was clamped to " << ctrl[0].value << ". It should be between " +
+                      std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) +
+                      " (step: " + std::to_string(queryctrl.step) + ")\n";
     }
     return res;
 }

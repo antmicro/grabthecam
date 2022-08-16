@@ -139,13 +139,13 @@ Config parseOptions(int argc, char const *argv[])
     return config;
 }
 
-struct v4l2_queryctrl queryctrl;
-struct v4l2_querymenu querymenu;
 static void enumerateMenu(int fd)
 {
 
+    struct v4l2_querymenu querymenu;
     printf("\n  Menu items:\n");
 
+    struct v4l2_queryctrl queryctrl;
     memset(&querymenu, 0, sizeof(querymenu));
     querymenu.id = queryctrl.id;
 
@@ -158,24 +158,14 @@ static void enumerateMenu(int fd)
     }
 }
 
-int main(int argc, char const *argv[])
+
+// for debugging
+void printAllCameraParams(CameraCapture &camera)
 {
-    // SET UP THE CAMERA
-    bool raw = false;
-    int input_format;
-
-    Config conf = parseOptions(argc, argv);     ///< user's configuration
-    CameraCapture camera(conf.camera_filename); ///< cameracapture object
-
-    // adjust camera settings
-    camera.setFormat(conf.dims[0], conf.dims[1], conf.pix_format); // set frame format
-    auto format = camera.getFormat();                              ///< Actually set frame format
-    double time_perframe;
-
-    ///////////////
     int value;
     std::cout << "\nCONTROLS\n";
 
+    struct v4l2_queryctrl queryctrl;
     memset(&queryctrl, 0, sizeof(queryctrl));
 
     for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++)
@@ -187,18 +177,18 @@ int main(int argc, char const *argv[])
                 continue;
             }
 
-            std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
-            camera.get(queryctrl.id, &value);
-            std::cout << value << " default: ";
-            camera.get(queryctrl.id, &value, false);
             try
             {
+                std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
+                camera.get(queryctrl.id, &value);
+                std::cout << value << " default: ";
+                camera.get(queryctrl.id, &value, false);
                 std::cout << value << std::endl;
                 camera.set(queryctrl.id, value);
             }
             catch (CameraException e)
             {
-                std::cout << e.what() << std::endl;
+                std::cout << "\e[31m" <<  e.what() << "\e[0m" << std::endl;
             }
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
@@ -246,13 +236,21 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
     }
-    std::cout << std::endl;
-    camera.set(V4L2_CID_SHARPNESS, 128);
-    camera.get(V4L2_CID_SHARPNESS, &value);
-    std::cout << "sharpness " << value << std::endl;
+}
 
-    bool boolvalue;
-    camera.get(9963788, &boolvalue);
+int main(int argc, char const *argv[])
+{
+    // SET UP THE CAMERA
+    bool raw = false;
+    int input_format;
+
+    Config conf = parseOptions(argc, argv);     ///< user's configuration
+    CameraCapture camera(conf.camera_filename); ///< cameracapture object
+
+    // adjust camera settings
+    camera.setFormat(conf.dims[0], conf.dims[1], conf.pix_format); // set frame format
+    auto format = camera.getFormat();                              ///< Actually set frame format
+    double time_perframe;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

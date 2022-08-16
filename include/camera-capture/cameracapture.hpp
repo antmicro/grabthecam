@@ -46,11 +46,10 @@ public:
      * On error throws CameraException
      * @param property Ioctl code of the parameter to change
      * @param value Value for the parameter
+     * @param warning Print warning to stderr when the value was clamped
      */
-    template <Numeric T> int set(int property, T value);
+    template <Numeric T> int set(int property, T value, bool warning = true);
 
-    // TODO: docs
-    int setCtrl(int property, v4l2_ext_control *ctrl);
     /**
      * Run ioctl code
      *
@@ -69,9 +68,6 @@ public:
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      */
     template <Numeric T> int get(int property, T *value, bool current = true) const;
-
-    // TODO: docs
-    int getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
     /**
      * Set the camera frame format to a given value
@@ -181,6 +177,26 @@ private:
      * @return Result of the VIDIOC_QUERYCTL
      */
     int queryProperty(int property, v4l2_queryctrl *query) const;
+
+    /*
+     * Set camera setting to a given value
+     *
+     * On error throws CameraException
+     * @param property Ioctl code of the parameter to change
+     * @param ctrl Control stucture with the value for the parameter filled
+     * @param warning Print warning to stderr when the value was clamped
+     */
+    int setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
+
+    /**
+     * Get v4l2 structure with camera property
+     *
+     * On error throws CameraException
+     * @param property Ioctl code of the parameter
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
+     * @param ctrls Structure, which will be filled with the parameter's value
+     */
+    int getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
     /**
      * Get current width and height. Set relevants fields.
