@@ -158,7 +158,6 @@ static void enumerateMenu(int fd)
     }
 }
 
-
 // for debugging
 void printAllCameraParams(CameraCapture &camera)
 {
@@ -188,7 +187,7 @@ void printAllCameraParams(CameraCapture &camera)
             }
             catch (CameraException e)
             {
-                std::cout << "\e[31m" <<  e.what() << "\e[0m" << std::endl;
+                std::cout << "\e[31m" << e.what() << "\e[0m" << std::endl;
             }
 
             if (queryctrl.type == V4L2_CTRL_TYPE_MENU)

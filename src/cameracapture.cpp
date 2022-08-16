@@ -212,9 +212,9 @@ int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
 
     if (warning && value != ctrl[0].value)
     {
-        std::cerr << "\n[WARNING] Parameter's value was clamped to " << ctrl[0].value << ". It should be between " +
-                      std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) +
-                      " (step: " + std::to_string(queryctrl.step) + ")\n";
+        std::cerr << "\n[WARNING] Parameter's value was clamped to " << ctrl[0].value
+                  << ". It should be between " + std::to_string(queryctrl.minimum) + " and " +
+                         std::to_string(queryctrl.maximum) + " (step: " + std::to_string(queryctrl.step) + ")\n";
     }
     return res;
 }
