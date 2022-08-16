@@ -51,6 +51,8 @@ public:
     template <Numeric T>
     int set(int property, T value);
 
+    //TODO: docs
+    int setCtrl(int property, v4l2_ext_control *ctrl);
     /**
      * Run ioctl code
      *
@@ -58,8 +60,7 @@ public:
      * @param ioctl Ioctl code to run
      * @param value Structure, which will be used in this execution
      */
-    template<typename T>
-    int runIoctl(int ioctl, T *value) const;
+    int runIoctl(int ioctl, void *value) const;
 
     /**
      * Get the camera setting value
@@ -71,6 +72,9 @@ public:
      */
     template <Numeric T>
     int get(int property, T *value, bool current = true) const;
+
+    //TODO: docs
+    int getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
     /**
      * Set the camera frame format to a given value

@@ -85,6 +85,16 @@ void CameraCapture::updateFormat()
     this->width = fmt.fmt.pix.width;
 }
 
+int CameraCapture::runIoctl(int ioctl, void *value) const
+{
+    int res = v4l2_ioctl(this->fd, ioctl, value);
+    if (res !=0)
+    {
+        throw CameraException("", errno);
+    }
+    return res;
+}
+
 int CameraCapture::queryProperty(int property, v4l2_queryctrl *queryctrl) const
 {
     memset(queryctrl, 0, sizeof(&queryctrl));
@@ -107,6 +117,98 @@ int CameraCapture::queryProperty(int property, v4l2_queryctrl *queryctrl) const
     else if (queryctrl->flags & V4L2_CTRL_FLAG_DISABLED)
     {
         throw CameraException(default_message + "\nProperty is disabled.");
+    }
+    return res;
+}
+
+int CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const
+{
+    int res;
+
+    v4l2_queryctrl queryctrl;
+    res = queryProperty(property, &queryctrl);
+    // std::cout << "type " << queryctrl.type << std::endl;
+    if (res == 0)
+    {
+        v4l2_ext_control ctrl[1];
+        memset(&ctrl, 0, sizeof(ctrl));
+        ctrl[0].id = property;
+        ctrl[0].size = 0;
+
+
+        memset(&ctrls, 0, sizeof(ctrls));
+        ctrls.which = current ?  V4L2_CTRL_WHICH_CUR_VAL : V4L2_CTRL_WHICH_DEF_VAL;
+        ctrls.count = 1;
+        ctrls.controls = ctrl;
+
+        try
+        {
+            res = this->runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+        }
+        catch (CameraException e)
+        {
+            switch(e.error_code)
+            {
+               case EACCES:
+                    std::cerr <<"err 13 you shell not pass\n"; //TODO delete
+                    break;
+               case EINVAL:
+                    throw CameraException("Check if your stucture is valid and you've filled all required fields.", e.error_code);
+                    break;
+               case ENOSPC:
+                    throw CameraException("Too small size was set. Changed to " + std::to_string(ctrl[0].size), e.error_code);
+                    break;
+              default:
+                    throw CameraException("",  e.error_code);
+             }
+        }
+    }
+    return res;
+}
+
+int CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl)
+{
+    int res;
+    ctrl[0].id = property;
+    ctrl[0].size = 0;
+
+    v4l2_queryctrl queryctrl;
+    res = queryProperty(property, &queryctrl);
+    if (res == 0)
+    {
+        //TODO: VIDIOC_TRY_EXT_CTRLS
+        v4l2_ext_controls ctrls;
+        memset(&ctrls, 0, sizeof(ctrls));
+        ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+        ctrls.count = 1;
+        ctrls.controls = ctrl;
+
+        try
+        {
+            res = this->runIoctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+        }
+        catch (CameraException e)
+        {
+            switch(e.error_code)
+            {
+                case EACCES:
+                    std::cerr <<"err 13 you shell not pass\n"; //TODO delete
+                    break;
+                case EINVAL:
+                    throw CameraException("Check if your stucture is valid and you've filled all required fields.", e.error_code);
+                    break;
+                case ERANGE:
+                    throw CameraException("Wrong parameter value. It should be between " + std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) + " (step: " + std::to_string(queryctrl.step) + ")");
+                    break;
+                case EILSEQ:
+                    throw CameraException("Check if your change is compatible with other camera settings.", e.error_code);
+                    break;
+                default:
+                    throw CameraException("", e.error_code);
+             }
+        }
+        //TODO:
+        // warning if the value is clamped?
     }
     return res;
 }
