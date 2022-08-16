@@ -229,6 +229,9 @@ int main(int argc, char const *argv[])
         }
     }
     std::cout << std::endl;
+    camera.set(V4L2_CID_SHARPNESS, 128);
+    camera.get(V4L2_CID_SHARPNESS, &value);
+    std::cout << "sharpness " << value << std::endl; 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
     v4l2_format fmt = {0};

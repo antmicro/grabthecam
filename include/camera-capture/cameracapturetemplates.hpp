@@ -47,7 +47,32 @@ int CameraCapture::set(int property, T value)
         ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
         ctrls.count = 1;
         ctrls.controls = ctrl;
-        res = this->runIoctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+        try
+        {
+            res = this->runIoctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+        }
+        catch (CameraException e)
+        {
+            switch(e.error_code)
+            {
+                case EACCES:
+                    std::cerr <<"err 13 you shell not pass\n"; //TODO delete
+                    break;
+                case EINVAL:
+                    throw CameraException("Check if your stucture is valid and you've filled all required fields.", e.error_code);
+                    break;
+                case ERANGE:
+                    throw CameraException("Wrong parameter value. It should be between " + std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) + " (step: " + std::to_string(queryctrl.step) + ")");
+                    break;
+                case EILSEQ:
+                    throw CameraException("Check if your change is compatible with other camera settings.", e.error_code);
+                    break;
+                default:
+                    throw CameraException("", e.error_code);
+             }
+        }
+        //TODO:
+        // warning if the value is clamped?
     }
     return res;
 }
@@ -58,24 +83,7 @@ int CameraCapture::runIoctl(int ioctl, T *value) const
     int res = v4l2_ioctl(this->fd, ioctl, value);
     if (res !=0)
     {
-        std::string default_message = "Running ioctl failed: " + std::to_string(errno) + " (" + strerror(errno) + ")";
-        switch(errno)
-        {
-            case 22:
-                throw CameraException(default_message + "\nCheck if your stucture is valid and you've filled all required fields.");
-                break;
-            case 25:
-                throw CameraException(default_message + "\nIf it's a property, use the overloaded function");
-                break;
-            case 13:
-                std::cerr <<"err 13 you shell not pass\n"; //TODO delete
-                break;
-             case 84:
-                throw CameraException(default_message + "\nCheck if your change is compatible with other camera settings.");
-                break;
-            default:
-                throw CameraException(default_message);
-        }
+        throw CameraException("", errno);
     }
     return res;
 }
@@ -96,7 +104,7 @@ int CameraCapture::get(int property, T *value, bool current) const
         v4l2_ext_control ctrl[1];
         memset(&ctrl, 0, sizeof(ctrl));
         ctrl[0].id = property;
-        ctrl[0].size = 0; //TODO: check if size was set correctly
+        ctrl[0].size = 0;
 
         v4l2_ext_controls ctrls;
         memset(&ctrls, 0, sizeof(ctrls));
@@ -110,8 +118,28 @@ int CameraCapture::get(int property, T *value, bool current) const
         }
         ctrls.count = 1;
         ctrls.controls = ctrl;
-        res = this->runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);
-        *value = ctrls.controls[0].value;
+        try
+        {
+            res = this->runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+            *value = ctrls.controls[0].value;
+        }
+        catch (CameraException e)
+        {
+            switch(e.error_code)
+            {
+               case EACCES:
+                    std::cerr <<"err 13 you shell not pass\n"; //TODO delete
+                    break;
+               case EINVAL:
+                    throw CameraException("Check if your stucture is valid and you've filled all required fields.", e.error_code);
+                    break;
+               case ENOSPC:
+                    throw CameraException("Too small size was set. Changed to " + std::to_string(ctrl[0].size), e.error_code);
+                    break;
+              default:
+                    throw CameraException("",  e.error_code);
+             }
+        }
     }
     return res;
 }
