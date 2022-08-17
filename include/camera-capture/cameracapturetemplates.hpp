@@ -9,9 +9,9 @@ template <Numeric T> void CameraCapture::set(int property, T value, bool warning
     setCtrl(property, ctrl, warning);
 }
 
-template <Numeric T> void CameraCapture::get(int property, T *value, bool current) const
+template <Numeric T> void CameraCapture::get(int property, T &value, bool current) const
 {
     v4l2_ext_controls ctrls;
     getCtrls(property, current, ctrls);
-    *value = ctrls.controls[0].value;
+    value = ctrls.controls[0].value;
 }

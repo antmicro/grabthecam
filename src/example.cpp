@@ -179,9 +179,11 @@ void printAllCameraParams(CameraCapture &camera)
             try
             {
                 std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
-                camera.get(queryctrl.id, &value);
+                camera.get(queryctrl.id, value);
                 std::cout << value << " default: ";
-                camera.get(queryctrl.id, &value, false);
+                camera.get(queryctrl.id, value, false);
+
+                //set them to default value
                 std::cout << value << std::endl;
                 camera.set(queryctrl.id, value);
             }

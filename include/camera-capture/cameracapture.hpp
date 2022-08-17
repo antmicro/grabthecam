@@ -72,7 +72,7 @@ public:
      * @param value Numeric (int, float, bool...) variable, which will be filled with value
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      */
-    template <Numeric T> void get(int property, T *value, bool current = true) const;
+    template <Numeric T> void get(int property, T &value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
@@ -125,7 +125,7 @@ public:
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(cv::Mat *frame, int dtype, int buffer_no = 0) const;
+    void read(cv::Mat &frame, int dtype, int buffer_no = 0) const;
 
     /**
      * Grab, export to cv::Mat (and preprocess) frame
