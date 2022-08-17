@@ -78,17 +78,19 @@ void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int
 
 Config parseOptions(int argc, char const *argv[])
 {
+    Config config;
+    cxxopts::ParseResult result;
+
     // Set available options
     cxxopts::Options options("Camera-capture", "A demo for camera-capture – lightweight, easily adjustable library for "
                                                "managing v4l cameras and capturing frames.");
 
-    options.add_options()("c, camera", "Filename of a camera device",
-                          cxxopts::value<std::string>()->default_value("/dev/video0"))(
-        "t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",
-        cxxopts::value<std::string>()) // TODO: more formats
-        ("o, out", "Path to save the frame", cxxopts::value<std::string>()->default_value("../out/frame"))(
-            "d, dims", "Frame width and height",
-            cxxopts::value<std::vector<int>>()->default_value("960,720"))("h, help", "Print usage");
+    options.add_options()
+        ("c, camera", "Filename of a camera device", cxxopts::value(config.camera_filename)->default_value("/dev/video0"))
+        ("t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",  cxxopts::value(config.type)) // TODO: more formats
+        ("o, out", "Path to save the frame", cxxopts::value(config.out_filename)->default_value("../out/frame"))
+        ("d, dims", "Frame width and height", cxxopts::value(config.dims)->default_value("960,720"))
+        ("h, help", "Print usage");
 
     std::unordered_map<std::string, unsigned int> pix_formats = {// TODO: more formats
                                                                  {"YUYV", V4L2_PIX_FMT_YYUV},
@@ -100,25 +102,12 @@ Config parseOptions(int argc, char const *argv[])
                                                                  {"RG12", V4L2_PIX_FMT_SRGGB12}};
 
     // Get command line parameters and parse them
-    auto result = options.parse(argc, argv);
-
-    if (result.count("help"))
-    {
-        std::cout << options.help() << std::endl;
-        exit(0);
-    }
-
-    Config config;
     try
     {
-        config.camera_filename = result["camera"].as<std::string>();
-        config.type = result["type"].as<std::string>();
-        config.out_filename = result["out"].as<std::string>();
-        config.dims = result["dims"].as<std::vector<int>>();
-
+        result = options.parse(argc, argv);
         config.pix_format = pix_formats.at(config.type);
     }
-    catch (cxxopts::OptionException e)
+    catch(cxxopts::argument_incorrect_type e)
     {
         std::cerr << std::endl
                   << "\033[31mError while parsing command line arguments: " << e.what() << "\033[0m" << std::endl
@@ -134,6 +123,12 @@ Config parseOptions(int argc, char const *argv[])
                   << std::endl;
         std::cout << options.help() << std::endl;
         exit(1);
+    }
+
+    if (result.count("help"))
+    {
+        std::cout << options.help() << std::endl;
+        exit(0);
     }
 
     return config;
