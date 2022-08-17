@@ -1,12 +1,7 @@
 #pragma once
 
-#include <linux/v4l2-common.h>
-#include <linux/v4l2-controls.h>
-#include <linux/videodev2.h>
-
-#include <iostream>
-#include <memory>
-#include <string.h> //strerror
+#include "camera-capture/mmapbuffer.hpp"
+#include <opencv2/core/mat.hpp> // cv::Mat
 
 /**
  * Exception to handle errors from camera Class
@@ -21,7 +16,6 @@ public:
      * @param error_code Linux error code (0 if not related)
      */
     CameraException(std::string msg, int error_code = 0) : error_code(error_code) { setMessage(msg); }
-
 
     /**
      * Combine description and error code
@@ -45,3 +39,30 @@ public:
 private:
     std::string msg; ///< description
 };
+
+/**
+ * Check if directories exist and create them if necessary
+ *
+ * @param filename Path for filename which should be present in filesystem
+ */
+void createDirectories(std::string filename);
+
+/**
+ * Save raw frame to file
+ *
+ * Saves the frame as a sequence of bytes
+ *
+ * @param filename Where to save the file
+ * @param frame The raw frame to save
+ */
+void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame);
+
+/**
+ * Save processed frame to file
+ *
+ * Saves the file using opencv method
+ *
+ * @param filename Where to save the file
+ * @param frame The frame to save
+ */
+void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame);

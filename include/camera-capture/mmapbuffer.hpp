@@ -1,11 +1,5 @@
 #pragma once
 
-#include <sys/mman.h>
-
-#include <cstring> //memset
-#include <iostream>
-#include <memory>
-
 /**
  * Class for managing memory mapping and keeping information about buffer.
  */

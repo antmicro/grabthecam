@@ -1,4 +1,5 @@
 #include "camera-capture/frameconverters/anyformat2bgrconverter.hpp"
+#include <opencv2/imgproc.hpp> // cvtColor
 
 cv::Mat AnyFormat2bgrConverter::convert(cv::Mat src)
 {

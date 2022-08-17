@@ -1,5 +1,12 @@
 #include "camera-capture/cameracapture.hpp"
 #include "camera-capture/cameracapturetemplates.hpp"
+#include "camera-capture/utils.hpp"
+
+#include <fcntl.h> // O_RDWR
+#include <iostream>
+#include <libv4l2.h>
+#include <sys/ioctl.h> // ioctl
+#include <vector>
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -145,8 +152,7 @@ void CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrl
                                   e.error_code);
             break;
         case ENOSPC:
-            throw CameraException("Too small size was set. Changed to " + std::to_string(ctrl[0].size),
-                                  e.error_code);
+            throw CameraException("Too small size was set. Changed to " + std::to_string(ctrl[0].size), e.error_code);
             break;
         default:
             throw CameraException("", e.error_code);
@@ -184,8 +190,8 @@ void CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
                                   e.error_code);
             break;
         case ERANGE:
-            throw CameraException("Wrong parameter value. It should be between " +
-                                  std::to_string(queryctrl.minimum) + " and " + std::to_string(queryctrl.maximum) +
+            throw CameraException("Wrong parameter value. It should be between " + std::to_string(queryctrl.minimum) +
+                                  " and " + std::to_string(queryctrl.maximum) +
                                   " (step: " + std::to_string(queryctrl.step) + ")");
             break;
         case EILSEQ:

@@ -1,26 +1,10 @@
 #pragma once
 
-#include <fcntl.h>
-#include <libv4l2.h>
-#include <linux/ioctl.h>
-#include <linux/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-
-#include <concepts>
-#include <cstddef>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include <linux/videodev2.h>
 
 #include "camera-capture/frameconverter.hpp"
-#include "camera-capture/mmapbuffer.hpp"
-#include "camera-capture/utils.hpp"
-#include <opencv2/core/mat.hpp>
+#include <concepts>
+#include <opencv2/core/mat.hpp> // cv::Mat
 
 template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
 
@@ -180,7 +164,7 @@ private:
      * @param property Property to check
      * @param query The structure, where the results should be stored. It should be empty.
      */
-     void queryProperty(int property, v4l2_queryctrl *query) const;
+    void queryProperty(int property, v4l2_queryctrl *query) const;
 
     /*
      * Set camera setting to a given value
@@ -201,7 +185,7 @@ private:
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      * @param ctrls Structure, which will be filled with the parameter's value
      */
-    void  getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
+    void getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
     /**
      * Get current width and height. Set relevants fields.

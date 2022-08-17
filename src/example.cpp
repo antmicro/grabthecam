@@ -1,40 +1,37 @@
-#include <camera-capture/example.hpp>
+#include "camera-capture/cameracapture.hpp"
+#include "camera-capture/cameracapturetemplates.hpp"
+#include "camera-capture/frameconverters/anyformat2bgrconverter.hpp"
+#include "camera-capture/frameconverters/raw2bayerconverter.hpp"
+#include "camera-capture/frameconverters/raw2yuvconverter.hpp"
+#include "cxxopts/cxxopts.hpp"
+#include <opencv2/imgproc.hpp>
 
-void createDirectories(std::string filename)
+#include "camera-capture/utils.hpp"
+
+#include <sys/ioctl.h> //TODO: remove -- for debugging only
+
+/**
+ * User's preferred configuration
+ */
+typedef struct Config
 {
-    std::filesystem::path path = filename;
-    std::filesystem::create_directories(path.parent_path());
-}
+    std::string camera_filename; ///< Path to the camera file
+    std::string out_filename;    ///< Where to save the file
+    std::string type;            ///< Raw frame type
+    std::vector<int> dims;       ///< Frame width and height
+    unsigned int pix_format;     ///< Raw frame type – v4l2 code
+} Config;
 
-void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame)
-{
-    std::cout << "Saving " << filename << std::endl;
-
-    createDirectories(filename);
-
-    // Write the data out to file
-    std::ofstream out_file;
-    out_file.open(filename, std::ios::binary);
-    if (out_file.fail())
-    {
-        throw CameraException("Cannot open the file to save. Check if file exists and you have permission to edit it.");
-    }
-
-    out_file.write((char *)(frame->start), frame->bytesused);
-    out_file.close();
-}
-
-void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
-{
-    std::cout << "Saving " << filename << std::endl;
-
-    createDirectories(filename);
-    if (!cv::imwrite(filename, *frame.get()))
-    {
-        throw CameraException("Cannot save the processed Frame");
-    }
-}
-
+/**
+ * Set frame converter
+ *
+ * Set proper converter for camera capture according to given pixel format
+ *
+ * @param camera CameraCapture object, in which converter will be set
+ * @param pix_format Pixel format to determine converter type
+ * @param raw Return parameter whether frame needs processing, or should be read as MMapBuffer
+ * @param input_format Return parameter; opencv's format for the raw frame
+ */
 void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int &input_format)
 {
     std::shared_ptr<FrameConverter> converter; ///< converter to be used by the cameracapture object
@@ -76,6 +73,12 @@ void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int
     camera.setConverter(converter);
 }
 
+/**
+ * Parse command line options
+ *
+ * @param argc Arguments counter
+ * @param argv Arguments values
+ */
 Config parseOptions(int argc, char const *argv[])
 {
     Config config;
@@ -107,7 +110,7 @@ Config parseOptions(int argc, char const *argv[])
         result = options.parse(argc, argv);
         config.pix_format = pix_formats.at(config.type);
     }
-    catch(cxxopts::argument_incorrect_type e)
+    catch (cxxopts::argument_incorrect_type e)
     {
         std::cerr << std::endl
                   << "\033[31mError while parsing command line arguments: " << e.what() << "\033[0m" << std::endl
@@ -154,6 +157,9 @@ static void enumerateMenu(int fd)
 }
 
 // for debugging
+/**
+ * Show all parameters for the camera and set them to default values
+ */
 void printAllCameraParams(CameraCapture &camera)
 {
     int value;
@@ -178,7 +184,7 @@ void printAllCameraParams(CameraCapture &camera)
                 std::cout << value << " default: ";
                 camera.get(queryctrl.id, value, false);
 
-                //set them to default value
+                // set them to default value
                 std::cout << value << std::endl;
                 camera.set(queryctrl.id, value);
             }

@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} SHARED
     src/frameconverters/raw2yuvconverter.cpp
     src/frameconverters/raw2bayerconverter.cpp
     src/frameconverters/anyformat2bgrconverter.cpp
+    src/utils.cpp
     src/cameracapture.cpp
 )
 
