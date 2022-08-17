@@ -26,7 +26,8 @@ template <typename T> concept Numeric = std::integral<T> or std::floating_point<
 
 /**
  * Handles capturing frames from v4l cameras
- * Provides C++ API for changing camera settings and capturing frames
+ * Provides C++ API for changing camera settings and capturing frames.
+ *
  * See how it can be used in src/example.cpp
  */
 class CameraCapture
@@ -35,7 +36,7 @@ public:
     /**
      * Open the Camera
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param filename Path to the camera file
      */
     CameraCapture(std::string filename);
@@ -43,7 +44,9 @@ public:
     /**
      * Set camera setting to a given value
      *
-     * On error throws CameraException
+     * @throws CameraException
+     *
+     * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter to change
      * @param value Value for the parameter
      * @param warning Print warning to stderr when the value was clamped
@@ -53,7 +56,7 @@ public:
     /**
      * Run ioctl code
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param ioctl Ioctl code to run
      * @param value Structure, which will be used in this execution
      */
@@ -62,7 +65,9 @@ public:
     /**
      * Get the camera setting value
      *
-     * On error throws CameraException
+     * @throws CameraException
+     *
+     * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter
      * @param value Numeric (int, float, bool...) variable, which will be filled with value
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
@@ -72,7 +77,7 @@ public:
     /**
      * Set the camera frame format to a given value
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param width Image width in pixels
      * @param height Image height in pixels
      * @param pixelformat The pixel format or type of compression
@@ -171,7 +176,7 @@ private:
     /**
      * Check if the camera supports the property
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param property Property to check
      * @param query The structure, where the results should be stored. It should be empty.
      */
@@ -180,7 +185,8 @@ private:
     /*
      * Set camera setting to a given value
      *
-     * On error throws CameraException
+     * @throws CameraException
+     *
      * @param property Ioctl code of the parameter to change
      * @param ctrl Control stucture with the value for the parameter filled
      * @param warning Whether to print warning to stderr when the value was clamped
@@ -190,7 +196,7 @@ private:
     /**
      * Get v4l2 structure with camera property
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param property Ioctl code of the parameter
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      * @param ctrls Structure, which will be filled with the parameter's value
@@ -200,14 +206,14 @@ private:
     /**
      * Get current width and height. Set relevants fields.
      *
-     * On error throws CameraException
+     * @throws CameraException
      */
     void updateFormat();
 
     /*
      * Ask the device for the buffers to capture frames and allocate memory for them
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param n Number of buffers to allocate
      * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If
      * not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information
@@ -218,7 +224,7 @@ private:
     /**
      * Stop streaming, free the buffers and mark camera as not ready to capture
      *
-     * On error throws CameraException
+     * @throws CameraException
      */
     void stopStreaming();
 
