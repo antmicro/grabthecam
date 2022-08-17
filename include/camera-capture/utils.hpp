@@ -18,9 +18,15 @@ public:
      * Constructor
      *
      * @param msg Exception description
+     * @param error_code Linux error code (0 if not related)
      */
     CameraException(std::string msg, int error_code = 0) : error_code(error_code) { setMessage(msg); }
 
+
+    /**
+     * Combine description and error code
+     * @param text Exception description
+     */
     void setMessage(std::string text)
     {
         msg = (error_code != 0) ? (std::to_string(error_code) + " " + strerror(error_code)) : "";

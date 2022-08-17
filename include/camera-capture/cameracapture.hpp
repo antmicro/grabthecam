@@ -40,7 +40,7 @@ public:
      */
     CameraCapture(std::string filename);
 
-    /*
+    /**
      * Set camera setting to a given value
      *
      * On error throws CameraException
@@ -48,7 +48,7 @@ public:
      * @param value Value for the parameter
      * @param warning Print warning to stderr when the value was clamped
      */
-    template <Numeric T> int set(int property, T value, bool warning = true);
+    template <Numeric T> void set(int property, T value, bool warning = true);
 
     /**
      * Run ioctl code
@@ -57,7 +57,7 @@ public:
      * @param ioctl Ioctl code to run
      * @param value Structure, which will be used in this execution
      */
-    int runIoctl(int ioctl, void *value) const;
+    void runIoctl(int ioctl, void *value) const;
 
     /**
      * Get the camera setting value
@@ -67,7 +67,7 @@ public:
      * @param value Numeric (int, float, bool...) variable, which will be filled with value
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      */
-    template <Numeric T> int get(int property, T *value, bool current = true) const;
+    template <Numeric T> void get(int property, T *value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
@@ -171,12 +171,11 @@ private:
     /**
      * Check if the camera supports the property
      *
+     * On error throws CameraException
      * @param property Property to check
      * @param query The structure, where the results should be stored. It should be empty.
-     *
-     * @return Result of the VIDIOC_QUERYCTL
      */
-    int queryProperty(int property, v4l2_queryctrl *query) const;
+     void queryProperty(int property, v4l2_queryctrl *query) const;
 
     /*
      * Set camera setting to a given value
@@ -184,9 +183,9 @@ private:
      * On error throws CameraException
      * @param property Ioctl code of the parameter to change
      * @param ctrl Control stucture with the value for the parameter filled
-     * @param warning Print warning to stderr when the value was clamped
+     * @param warning Whether to print warning to stderr when the value was clamped
      */
-    int setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
+    void setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
 
     /**
      * Get v4l2 structure with camera property
@@ -196,7 +195,7 @@ private:
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      * @param ctrls Structure, which will be filled with the parameter's value
      */
-    int getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
+    void  getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
     /**
      * Get current width and height. Set relevants fields.
