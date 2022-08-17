@@ -15,7 +15,7 @@ int xioctl(int fd, int request, void *arg)
 CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 {
     // Open the device
-    this->fd = v4l2_open(filename.c_str(), O_RDWR);
+    fd = v4l2_open(filename.c_str(), O_RDWR);
 
     if (fd < 0)
     {
@@ -30,7 +30,7 @@ CameraCapture::~CameraCapture()
 {
     // end streaming
     runIoctl(VIDIOC_STREAMOFF, &buffer_type);
-    v4l2_close(this->fd);
+    v4l2_close(fd);
 }
 
 void CameraCapture::stopStreaming()
@@ -83,15 +83,15 @@ void CameraCapture::updateFormat()
         throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
     }
 
-    this->height = fmt.fmt.pix.height;
-    this->width = fmt.fmt.pix.width;
+    height = fmt.fmt.pix.height;
+    width = fmt.fmt.pix.width;
 }
 
 void CameraCapture::runIoctl(int ioctl, void *value) const
 {
-    if (v4l2_ioctl(this->fd, ioctl, value) != 0)
+    if (v4l2_ioctl(fd, ioctl, value) != 0)
     {
-        throw CameraException("", errno);
+        throw CameraException("runIoctl: v4l2_ioctl error [ioctl: " + std::to_string(ioctl) + "]", errno);
     }
 }
 
@@ -100,22 +100,20 @@ void CameraCapture::queryProperty(int property, v4l2_queryctrl *queryctrl) const
     memset(queryctrl, 0, sizeof(&queryctrl));
     queryctrl->id = property;
 
-    std::string default_message = "VIDIOC_QUERYCTRL: " + std::to_string(errno) + strerror(errno);
-
-    if (xioctl(this->fd, VIDIOC_QUERYCTRL, queryctrl) == -1)
+    if (xioctl(fd, VIDIOC_QUERYCTRL, queryctrl) == -1)
     {
         if (errno != EINVAL)
         {
-            throw CameraException(default_message);
+            throw CameraException("queryProperty: vidioc_queryctrl error", errno);
         }
         else
         {
-            throw CameraException(default_message + "\nProperty is not supported.");
+            throw CameraException("queryProperty: vidioc_queryctrl error: Property is not supported.", errno);
         }
     }
     else if (queryctrl->flags & V4L2_CTRL_FLAG_DISABLED)
     {
-        throw CameraException(default_message + "\nProperty is disabled.");
+        throw CameraException("queryProperty: vidioc_queryctrl error: Property is disabled.", errno);
     }
 }
 
@@ -228,7 +226,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     request_buffer.type = buffer_type;
     request_buffer.memory = V4L2_MEMORY_MMAP;
 
-    if (xioctl(this->fd, VIDIOC_REQBUFS, &request_buffer) < 0)
+    if (xioctl(fd, VIDIOC_REQBUFS, &request_buffer) < 0)
     {
         throw CameraException("Requesting buffer failed. See errno and VIDEOC_REQBUFS docs for more information.");
     }
@@ -246,7 +244,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
         query_buffer.memory = V4L2_MEMORY_MMAP;
         query_buffer.index = i;
 
-        if (xioctl(this->fd, VIDIOC_QUERYBUF, &query_buffer) < 0)
+        if (xioctl(fd, VIDIOC_QUERYBUF, &query_buffer) < 0)
         {
             throw CameraException("Device did not return the queryBuffer information. See errno and VIDEOC_QUERYBUF "
                                   "docs for more information.");
@@ -277,7 +275,7 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
         info_buffer->memory = V4L2_MEMORY_MMAP;
 
         // Activate streaming
-        if (xioctl(this->fd, VIDIOC_STREAMON, &buffer_type) < 0)
+        if (xioctl(fd, VIDIOC_STREAMON, &buffer_type) < 0)
         {
             throw CameraException(
                 "Could not start streaming. See errno and VIDEOC_STREAMON docs for more information.");
