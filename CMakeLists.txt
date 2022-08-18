@@ -42,6 +42,9 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
+install(
+    DIRECTORY include/camera-capture/ DESTINATION include/camera-capture/
+)
 
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
