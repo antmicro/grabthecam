@@ -212,6 +212,13 @@ private:
      */
     void stopStreaming();
 
+    /**
+     * Check if the buffer is available for read
+     *
+     * @param buffer_no Index of the camera buffer
+     */
+    void checkBuffer(int buffer_no) const;
+
     int fd;                                           ///< A file descriptor to the opened camera
     int width;                                        ///< Frame width in pixels, currently set on the camera
     int height;                                       ///< Frame width in pixels, currently set on the camera

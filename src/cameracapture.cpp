@@ -307,15 +307,28 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
     buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
 
-void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) const { frame = buffers[buffer_no]; }
+void CameraCapture::checkBuffer(int buffer_no) const
+{
+    if (!(buffers.size() > buffer_no && buffers[buffer_no]->bytesused > 0))
+    {
+        throw CameraException("Canot read the frame from the buffer " + std::to_string(buffer_no) + ". Grab the frame first.");    }
+}
+
+void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) const
+{
+    checkBuffer(buffer_no);
+    frame = buffers[buffer_no];
+}
 
 void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no) const
 {
+    checkBuffer(buffer_no);
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
 void CameraCapture::read(cv::Mat &frame, int dtype, int buffer_no) const
 {
+    checkBuffer(buffer_no);
     frame = cv::Mat(height, width, dtype, buffers[buffer_no]->start);
 }
 
