@@ -8,7 +8,11 @@
 void createDirectories(std::string filename)
 {
     std::filesystem::path path = filename;
-    std::filesystem::create_directories(path.parent_path());
+    std::filesystem::path parent = path.parent_path();
+    if (parent != "")
+    {
+        std::filesystem::create_directories(parent);
+    }
 }
 
 void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame)
