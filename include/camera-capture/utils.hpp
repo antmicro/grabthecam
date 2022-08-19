@@ -65,4 +65,4 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame);
  * @param filename Where to save the file
  * @param frame The frame to save
  */
-void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame);
+void saveToFile(std::string filename, cv::Mat &frame);

@@ -164,7 +164,7 @@ private:
      * @param property Property to check
      * @param query The structure, where the results should be stored. It should be empty.
      */
-    void queryProperty(int property, v4l2_queryctrl *query) const;
+    void queryProperty(int property, v4l2_queryctrl &query) const;
 
     /*
      * Set camera setting to a given value
@@ -172,7 +172,7 @@ private:
      * @throws CameraException
      *
      * @param property Ioctl code of the parameter to change
-     * @param ctrl Control stucture with the value for the parameter filled
+     * @param ctrl Control stucture array with the value for the parameter filled
      * @param warning Whether to print warning to stderr when the value was clamped
      */
     void setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);

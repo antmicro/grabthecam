@@ -102,12 +102,12 @@ void CameraCapture::runIoctl(int ioctl, void *value) const
     }
 }
 
-void CameraCapture::queryProperty(int property, v4l2_queryctrl *queryctrl) const
+void CameraCapture::queryProperty(int property, v4l2_queryctrl &query) const
 {
-    memset(queryctrl, 0, sizeof(&queryctrl));
-    queryctrl->id = property;
+    memset(&query, 0, sizeof(query));
+    query.id = property;
 
-    if (xioctl(fd, VIDIOC_QUERYCTRL, queryctrl) == -1)
+    if (xioctl(fd, VIDIOC_QUERYCTRL, &query) == -1)
     {
         if (errno != EINVAL)
         {
@@ -118,7 +118,7 @@ void CameraCapture::queryProperty(int property, v4l2_queryctrl *queryctrl) const
             throw CameraException("queryProperty: vidioc_queryctrl error: Property is not supported.", errno);
         }
     }
-    else if (queryctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+    else if (query.flags & V4L2_CTRL_FLAG_DISABLED)
     {
         throw CameraException("queryProperty: vidioc_queryctrl error: Property is disabled.", errno);
     }
@@ -128,7 +128,7 @@ void CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrl
 {
     v4l2_queryctrl queryctrl;
 
-    queryProperty(property, &queryctrl); // can throw exception
+    queryProperty(property, queryctrl); // can throw exception
     v4l2_ext_control ctrl[1];
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl[0].id = property;
@@ -169,7 +169,7 @@ void CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
     ctrl[0].size = 0;
 
     v4l2_queryctrl queryctrl;
-    queryProperty(property, &queryctrl); // can throw exception
+    queryProperty(property, queryctrl); // can throw exception
 
     v4l2_ext_controls ctrls;
     memset(&ctrls, 0, sizeof(ctrls));

@@ -33,12 +33,12 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame)
     out_file.close();
 }
 
-void saveToFile(std::string filename, std::shared_ptr<cv::Mat> frame)
+void saveToFile(std::string filename, cv::Mat &frame)
 {
     std::cout << "Saving " << filename << std::endl;
 
     createDirectories(filename);
-    if (!cv::imwrite(filename, *frame.get()))
+    if (!cv::imwrite(filename, frame))
     {
         throw CameraException("Cannot save the processed Frame");
     }

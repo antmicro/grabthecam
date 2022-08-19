@@ -269,7 +269,7 @@ int main(int argc, char const *argv[])
 
     if (!raw)
     {
-        auto processed_frame = std::make_shared<cv::Mat>(camera.capture(input_format)); ///< captured frame
+        cv::Mat processed_frame = camera.capture(input_format); ///< captured frame
         saveToFile(conf.out_filename + ".png", processed_frame);                        // save it
     }
     else
