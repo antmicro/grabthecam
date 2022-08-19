@@ -73,6 +73,17 @@ void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int
     camera.setConverter(converter);
 }
 
+void checkRequiredArgs(cxxopts::ParseResult &result, std::vector<std::string> &required)
+{
+    for (auto& r : required)
+    {
+        if (result.count(r) == 0)
+        {
+            throw CameraException("Error while parsing command line arguments: Parameter '" + r + "' is required");
+        }
+    }
+}
+
 /**
  * Parse command line options
  *
@@ -91,10 +102,11 @@ Config parseOptions(int argc, char const *argv[])
     options.add_options()
         ("c, camera", "Filename of a camera device", cxxopts::value(config.camera_filename)->default_value("/dev/video0"))
         ("t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",  cxxopts::value(config.type)) // TODO: more formats
-        ("o, out", "Path to save the frame", cxxopts::value(config.out_filename)->default_value("../out/frame"))
-        ("d, dims", "Frame width and height", cxxopts::value(config.dims)->default_value("960,720"))
+        ("o, out", "Path to save the frame", cxxopts::value(config.out_filename))
+        ("d, dims", "Frame width and height (eg. `960,720`)", cxxopts::value(config.dims))
         ("h, help", "Print usage");
 
+    std::vector<std::string> required = {"type", "dims"};
     std::unordered_map<std::string, unsigned int> pix_formats = {// TODO: more formats
                                                                  {"YUYV", V4L2_PIX_FMT_YYUV},
                                                                  {"JPG", V4L2_PIX_FMT_MJPEG},
@@ -108,9 +120,10 @@ Config parseOptions(int argc, char const *argv[])
     try
     {
         result = options.parse(argc, argv);
+        checkRequiredArgs(result, required);
         config.pix_format = pix_formats.at(config.type);
     }
-    catch (cxxopts::argument_incorrect_type e)
+    catch (cxxopts::OptionException e)
     {
         std::cerr << std::endl
                   << "\033[31mError while parsing command line arguments: " << e.what() << "\033[0m" << std::endl
@@ -127,11 +140,22 @@ Config parseOptions(int argc, char const *argv[])
         std::cout << options.help() << std::endl;
         exit(1);
     }
+    catch (CameraException e)
+    {
+        std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl << std::endl;
+        std::cout << options.help() << std::endl;
+        exit(1);
+    }
 
     if (result.count("help"))
     {
         std::cout << options.help() << std::endl;
         exit(0);
+    }
+
+    if (result.count("out") == 0)
+    {
+        config.out_filename = "";
     }
 
     return config;
@@ -265,19 +289,22 @@ int main(int argc, char const *argv[])
               << std::get<1>(format) << std::endl;
 
     // CAPTURE FRAME
-    setConverter(camera, conf.pix_format, raw, input_format);
+    if (conf.out_filename != "")
+    {
+        setConverter(camera, conf.pix_format, raw, input_format);
 
-    if (!raw)
-    {
-        cv::Mat processed_frame = camera.capture(input_format); ///< captured frame
-        saveToFile(conf.out_filename + ".png", processed_frame);                        // save it
-    }
-    else
-    {
-        std::shared_ptr<MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
-        camera.grab();                                             // fetch the frame to camera's buffer 0
-        camera.read(raw_frame);                                    // read content from the buffer
-        rawToFile(conf.out_filename + "." + conf.type, raw_frame); // save it
+        if (!raw)
+        {
+            cv::Mat processed_frame = camera.capture(input_format); ///< captured frame
+            saveToFile(conf.out_filename + ".png", processed_frame);                        // save it
+        }
+        else
+        {
+            std::shared_ptr<MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
+            camera.grab();                                             // fetch the frame to camera's buffer 0
+            camera.read(raw_frame);                                    // read content from the buffer
+            rawToFile(conf.out_filename + "." + conf.type, raw_frame); // save it
+        }
     }
     return 0;
 }
