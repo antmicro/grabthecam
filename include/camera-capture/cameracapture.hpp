@@ -1,28 +1,17 @@
 #pragma once
 
-#include <fcntl.h>
-#include <libv4l2.h>
-#include <linux/ioctl.h>
-#include <linux/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
+#include <linux/videodev2.h>
 
 #include "camera-capture/frameconverter.hpp"
-#include "camera-capture/mmapbuffer.hpp"
-#include "camera-capture/utils.hpp"
-#include <opencv2/core/mat.hpp>
+#include <concepts>
+#include <opencv2/core/mat.hpp> // cv::Mat
+
+template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
 
 /**
  * Handles capturing frames from v4l cameras
- * Provides C++ API for changing camera settings and capturing frames
+ * Provides C++ API for changing camera settings and capturing frames.
+ *
  * See how it can be used in src/example.cpp
  */
 class CameraCapture
@@ -31,41 +20,48 @@ public:
     /**
      * Open the Camera
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param filename Path to the camera file
      */
     CameraCapture(std::string filename);
 
     /**
-     * Obtain information about driver and hardware capabilities.
+     * Set camera setting to a given value
      *
-     * On error throws CameraException
-     * @param cap Structure which will be filled by the driver
-     */
-    void getCapabilities(std::unique_ptr<v4l2_capability> &cap);
-
-    /**
-     * Set the camera setting to a given value
+     * @throws CameraException
      *
-     * On error throws CameraException
+     * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter to change
      * @param value Value for the parameter
+     * @param warning Print warning to stderr when the value was clamped
      */
-    void set(int property, double value);
+    template <Numeric T> void set(int property, T value, bool warning = true);
+
+    /**
+     * Run ioctl code
+     *
+     * @throws CameraException
+     * @param ioctl Ioctl code to run
+     * @param value Structure, which will be used in this execution
+     */
+    void runIoctl(int ioctl, void *value) const;
 
     /**
      * Get the camera setting value
      *
-     * On error throws CameraException
+     * @throws CameraException
+     *
+     * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter
-     * @param value Variable, which will be filled with value
+     * @param value Numeric (int, float, bool...) variable, which will be filled with value
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
      */
-    void get(int property, double &value);
+    template <Numeric T> void get(int property, T &value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param width Image width in pixels
      * @param height Image height in pixels
      * @param pixelformat The pixel format or type of compression
@@ -93,7 +89,7 @@ public:
      * @param frame MMapBuffer where the raw frame data will be placed
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(std::shared_ptr<MMapBuffer> &frame, int buffer_no = 0);
+    void read(std::shared_ptr<MMapBuffer> &frame, int buffer_no = 0) const;
 
     /**
      * Return raw frame data
@@ -103,7 +99,7 @@ public:
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0);
+    void read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no = 0) const;
 
     /**
      * Return raw frame data
@@ -113,7 +109,7 @@ public:
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      */
-    void read(cv::Mat *frame, int dtype, int buffer_no = 0);
+    void read(cv::Mat &frame, int dtype, int buffer_no = 0) const;
 
     /**
      * Grab, export to cv::Mat (and preprocess) frame
@@ -153,7 +149,7 @@ public:
      *
      * @return width and height currently set in the camera
      */
-    std::pair<int, int> getFormat();
+    std::pair<int, int> getFormat() const;
 
     /**
      * Close the camera
@@ -162,16 +158,46 @@ public:
 
 private:
     /**
+     * Check if the camera supports the property
+     *
+     * @throws CameraException
+     * @param property Property to check
+     * @param query The structure, where the results should be stored. It should be empty.
+     */
+    void queryProperty(int property, v4l2_queryctrl &query) const;
+
+    /*
+     * Set camera setting to a given value
+     *
+     * @throws CameraException
+     *
+     * @param property Ioctl code of the parameter to change
+     * @param ctrl Control stucture array with the value for the parameter filled
+     * @param warning Whether to print warning to stderr when the value was clamped
+     */
+    void setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
+
+    /**
+     * Get v4l2 structure with camera property
+     *
+     * @throws CameraException
+     * @param property Ioctl code of the parameter
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
+     * @param ctrls Structure, which will be filled with the parameter's value
+     */
+    void getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
+
+    /**
      * Get current width and height. Set relevants fields.
      *
-     * On error throws CameraException
+     * @throws CameraException
      */
     void updateFormat();
 
     /*
      * Ask the device for the buffers to capture frames and allocate memory for them
      *
-     * On error throws CameraException
+     * @throws CameraException
      * @param n Number of buffers to allocate
      * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If
      * not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information
@@ -182,9 +208,16 @@ private:
     /**
      * Stop streaming, free the buffers and mark camera as not ready to capture
      *
-     * On error throws CameraException
+     * @throws CameraException
      */
     void stopStreaming();
+
+    /**
+     * Check if the buffer is available for read
+     *
+     * @param buffer_no Index of the camera buffer
+     */
+    void checkBuffer(int buffer_no) const;
 
     int fd;                                           ///< A file descriptor to the opened camera
     int width;                                        ///< Frame width in pixels, currently set on the camera

@@ -1,4 +1,12 @@
 #include "camera-capture/cameracapture.hpp"
+#include "camera-capture/cameracapturetemplates.hpp"
+#include "camera-capture/utils.hpp"
+
+#include <fcntl.h> // O_RDWR
+#include <iostream>
+#include <libv4l2.h>
+#include <sys/ioctl.h> // ioctl
+#include <vector>
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -14,53 +22,22 @@ int xioctl(int fd, int request, void *arg)
 CameraCapture::CameraCapture(std::string filename) : converter(nullptr)
 {
     // Open the device
-    this->fd = v4l2_open(filename.c_str(), O_RDWR | O_CREAT);
+    fd = v4l2_open(filename.c_str(), O_RDWR);
 
     if (fd < 0)
     {
         throw CameraException("Failed to open the camera");
     }
+
     ready_to_capture = false;
+    updateFormat();
 }
 
 CameraCapture::~CameraCapture()
 {
-    std::cout << "closing...\n";
-
     // end streaming
-    xioctl(fd, VIDIOC_STREAMOFF, &buffer_type);
-    v4l2_close(this->fd);
-}
-
-void CameraCapture::getCapabilities(std::unique_ptr<v4l2_capability> &cap)
-{
-    // Ask the device if it can capture frames
-    if (xioctl(this->fd, VIDIOC_QUERYCAP, cap.get()) < 0)
-    {
-        throw CameraException("Error in VIDIOC_QUERYCAP. See errno for more information");
-    }
-}
-
-void CameraCapture::set(int property, double value)
-{
-    v4l2_control c;
-    c.id = property;
-    c.value = value;
-    if (v4l2_ioctl(this->fd, VIDIOC_S_CTRL, &c) != 0)
-    {
-        throw CameraException("Setting property failed. See errno and VIDEOC_S_CTRL docs for more information");
-    }
-}
-
-void CameraCapture::get(int property, double &value)
-{
-    v4l2_control c;
-    c.id = property;
-    if (v4l2_ioctl(this->fd, VIDIOC_G_CTRL, &c) != 0)
-    {
-        throw CameraException("Getting property failed. See errno and VIDEOC_G_CTRL docs for more information");
-    }
-    value = c.value;
+    runIoctl(VIDIOC_STREAMOFF, &buffer_type);
+    v4l2_close(fd);
 }
 
 void CameraCapture::stopStreaming()
@@ -93,14 +70,13 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     fmt.fmt.pix.height = height;
     fmt.fmt.pix.pixelformat = pixelformat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    if (xioctl(this->fd, VIDIOC_S_FMT, &fmt) < 0)
+    if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
     {
         throw CameraException("Setting format failed. See errno and VIDEOC_S_FMT docs for more information");
     }
     else
     {
         updateFormat();
-        std::cout << "Format set to " << this->height << "x" << this->width << std::endl;
     }
 }
 
@@ -109,13 +85,129 @@ void CameraCapture::updateFormat()
     v4l2_format fmt = {0};
     fmt.type = buffer_type;
 
-    if (xioctl(this->fd, VIDIOC_G_FMT, &fmt) < 0)
+    if (xioctl(fd, VIDIOC_G_FMT, &fmt) < 0)
     {
         throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
     }
 
-    this->height = fmt.fmt.pix.height;
-    this->width = fmt.fmt.pix.width;
+    height = fmt.fmt.pix.height;
+    width = fmt.fmt.pix.width;
+}
+
+void CameraCapture::runIoctl(int ioctl, void *value) const
+{
+    if (v4l2_ioctl(fd, ioctl, value) != 0)
+    {
+        throw CameraException("runIoctl: v4l2_ioctl error [ioctl: " + std::to_string(ioctl) + "]", errno);
+    }
+}
+
+void CameraCapture::queryProperty(int property, v4l2_queryctrl &query) const
+{
+    memset(&query, 0, sizeof(query));
+    query.id = property;
+
+    if (xioctl(fd, VIDIOC_QUERYCTRL, &query) == -1)
+    {
+        if (errno != EINVAL)
+        {
+            throw CameraException("queryProperty: vidioc_queryctrl error", errno);
+        }
+        else
+        {
+            throw CameraException("queryProperty: vidioc_queryctrl error: Property is not supported.", errno);
+        }
+    }
+    else if (query.flags & V4L2_CTRL_FLAG_DISABLED)
+    {
+        throw CameraException("queryProperty: vidioc_queryctrl error: Property is disabled.", errno);
+    }
+}
+
+void CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const
+{
+    v4l2_queryctrl queryctrl;
+
+    queryProperty(property, queryctrl); // can throw exception
+    v4l2_ext_control ctrl[1];
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl[0].id = property;
+    ctrl[0].size = 0;
+
+    memset(&ctrls, 0, sizeof(ctrls));
+    ctrls.which = current ? V4L2_CTRL_WHICH_CUR_VAL : V4L2_CTRL_WHICH_DEF_VAL;
+    ctrls.count = 1;
+    ctrls.controls = ctrl;
+
+    try
+    {
+        runIoctl(VIDIOC_G_EXT_CTRLS, &ctrls);
+    }
+    catch (CameraException e)
+    {
+        switch (e.error_code)
+        {
+        case EINVAL:
+            throw CameraException("Check if your stucture is valid and you've filled all required fields.",
+                                  e.error_code);
+            break;
+        case ENOSPC:
+            throw CameraException("Too small size was set. Changed to " + std::to_string(ctrl[0].size), e.error_code);
+            break;
+        default:
+            throw CameraException("", e.error_code);
+        }
+    }
+}
+
+void CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
+{
+    int res;
+    int value = ctrl[0].value;
+
+    ctrl[0].id = property;
+    ctrl[0].size = 0;
+
+    v4l2_queryctrl queryctrl;
+    queryProperty(property, queryctrl); // can throw exception
+
+    v4l2_ext_controls ctrls;
+    memset(&ctrls, 0, sizeof(ctrls));
+    ctrls.which = V4L2_CTRL_WHICH_CUR_VAL;
+    ctrls.count = 1;
+    ctrls.controls = ctrl;
+
+    try
+    {
+        runIoctl(VIDIOC_S_EXT_CTRLS, &ctrls);
+    }
+    catch (CameraException e)
+    {
+        switch (e.error_code)
+        {
+        case EINVAL:
+            throw CameraException("Check if your stucture is valid and you've filled all required fields.",
+                                  e.error_code);
+            break;
+        case ERANGE:
+            throw CameraException("Wrong parameter value. It should be between " + std::to_string(queryctrl.minimum) +
+                                  " and " + std::to_string(queryctrl.maximum) +
+                                  " (step: " + std::to_string(queryctrl.step) + ")");
+            break;
+        case EILSEQ:
+            throw CameraException("Check if your change is compatible with other camera settings.", e.error_code);
+            break;
+        default:
+            throw CameraException("", e.error_code);
+        }
+    }
+
+    if (warning && value != ctrl[0].value)
+    {
+        std::cerr << "\n[WARNING] Parameter's value was clamped to " << ctrl[0].value
+                  << ". It should be between " + std::to_string(queryctrl.minimum) + " and " +
+                         std::to_string(queryctrl.maximum) + " (step: " + std::to_string(queryctrl.step) + ")\n";
+    }
 }
 
 void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
@@ -140,7 +232,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     request_buffer.type = buffer_type;
     request_buffer.memory = V4L2_MEMORY_MMAP;
 
-    if (xioctl(this->fd, VIDIOC_REQBUFS, &request_buffer) < 0)
+    if (xioctl(fd, VIDIOC_REQBUFS, &request_buffer) < 0)
     {
         throw CameraException("Requesting buffer failed. See errno and VIDEOC_REQBUFS docs for more information.");
     }
@@ -158,7 +250,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
         query_buffer.memory = V4L2_MEMORY_MMAP;
         query_buffer.index = i;
 
-        if (xioctl(this->fd, VIDIOC_QUERYBUF, &query_buffer) < 0)
+        if (xioctl(fd, VIDIOC_QUERYBUF, &query_buffer) < 0)
         {
             throw CameraException("Device did not return the queryBuffer information. See errno and VIDEOC_QUERYBUF "
                                   "docs for more information.");
@@ -170,7 +262,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     }
 }
 
-std::pair<int, int> CameraCapture::getFormat() { return std::pair<int, int>(width, height); }
+std::pair<int, int> CameraCapture::getFormat() const { return std::pair<int, int>(width, height); }
 
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
@@ -181,7 +273,6 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
 
     if (!ready_to_capture)
     {
-        // std::cout << "Preparing to capture...\n";
         requestBuffers(number_of_buffers, locations); // buffers in the device memory
 
         info_buffer = std::make_shared<v4l2_buffer>();
@@ -190,7 +281,7 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
         info_buffer->memory = V4L2_MEMORY_MMAP;
 
         // Activate streaming
-        if (xioctl(this->fd, VIDIOC_STREAMON, &buffer_type) < 0)
+        if (xioctl(fd, VIDIOC_STREAMON, &buffer_type) < 0)
         {
             throw CameraException(
                 "Could not start streaming. See errno and VIDEOC_STREAMON docs for more information.");
@@ -216,16 +307,29 @@ void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void 
     buffers[buffer_no].get()->bytesused = info_buffer->bytesused;
 }
 
-void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) { frame = buffers[buffer_no]; }
-
-void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no)
+void CameraCapture::checkBuffer(int buffer_no) const
 {
+    if (!(buffers.size() > buffer_no && buffers[buffer_no]->bytesused > 0))
+    {
+        throw CameraException("Canot read the frame from the buffer " + std::to_string(buffer_no) + ". Grab the frame first.");    }
+}
+
+void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) const
+{
+    checkBuffer(buffer_no);
+    frame = buffers[buffer_no];
+}
+
+void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no) const
+{
+    checkBuffer(buffer_no);
     frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
 }
 
-void CameraCapture::read(cv::Mat *frame, int dtype, int buffer_no)
+void CameraCapture::read(cv::Mat &frame, int dtype, int buffer_no) const
 {
-    frame = new cv::Mat(height, width, dtype, buffers[buffer_no]->start);
+    checkBuffer(buffer_no);
+    frame = cv::Mat(height, width, dtype, buffers[buffer_no]->start);
 }
 
 cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of_buffers, std::vector<void *> locations)
@@ -241,7 +345,7 @@ cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of
     }
     else
     {
-        std::cout << "No converter\n";
+        std::cerr << "WARNING: No converter provided - ommiting preprocessing\n";
     }
     return *frame;
 }

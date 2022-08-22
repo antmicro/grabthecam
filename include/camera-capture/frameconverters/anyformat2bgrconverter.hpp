@@ -3,14 +3,14 @@
 #include "camera-capture/frameconverter.hpp"
 
 /**
- * Class for processing Bayer Frames
+ * Class for processing BGRA888 (AR24) frames
  * For more information see Frame documentation
  */
-class Raw2BayerConverter : public FrameConverter
+class AnyFormat2bgrConverter : public FrameConverter
 {
 public:
     /**
-     * Constructor for Bayer converter
+     * Constructor for BGRA converter
      *
      * @param code OpenCV's color space conversion code (see
      * https://docs.opencv.org/4.5.2/d8/d01/group__imgproc__color__conversions.html#ga57261f12fccf872a2b2d66daf29d5bd0).
@@ -19,13 +19,13 @@ public:
      * @param nChannels Number of channels in the destination image; if the parameter is 0, the number of the channels
      * is derived automatically from raw matrix and code.
      */
-    Raw2BayerConverter(int code, int destMatType = CV_8UC3, int nChannels = 0)
+    AnyFormat2bgrConverter(int code, int destMatType = CV_8UC3, int nChannels = 0)
         : code(code), destMatType(destMatType), nChannels(nChannels)
     {
     }
 
     /**
-     * Perform demosaicing
+     * Perform conversion
      *
      * @param src Matrix to convert
      * @return Converted frame

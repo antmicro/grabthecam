@@ -1,9 +1,5 @@
 #pragma once
 
-#include "opencv2/core/core_c.h"
-#include <opencv2/imgcodecs.hpp> //imwrite
-#include <opencv2/imgproc.hpp>   //cvtColor
-
 #include "camera-capture/frameconverter.hpp"
 
 /**
@@ -20,7 +16,7 @@ public:
      *
      * @param code OpenCV's color space conversion code (see
      * https://docs.opencv.org/4.5.2/d8/d01/group__imgproc__color__conversions.html#ga57261f12fccf872a2b2d66daf29d5bd0).
-     * @param OpenCV's datatype for destination matrix (see
+     * @param destMatType OpenCV's datatype for destination matrix (see
      * https://docs.opencv.org/3.4/d1/d1b/group__core__hal__interface.html)
      */
     Raw2YuvConverter(int code, int destMatType = CV_8UC3) : code(code), destMatType(destMatType) {}
@@ -29,6 +25,7 @@ public:
      * Convert YUV to RGB
      *
      * @param src Matrix to convert
+     * @return Converted frame
      */
     cv::Mat convert(cv::Mat src) override;
 
