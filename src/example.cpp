@@ -8,18 +8,18 @@
 
 #include "camera-capture/utils.hpp"
 
-#include <sys/ioctl.h> //TODO: remove -- for debugging only
-
 /**
  * User's preferred configuration
  */
 typedef struct Config
 {
-    std::string camera_filename; ///< Path to the camera file
-    std::string out_filename;    ///< Where to save the file
-    std::string type;            ///< Raw frame type
-    std::vector<int> dims;       ///< Frame width and height
-    unsigned int pix_format;     ///< Raw frame type – v4l2 code
+    std::string camera_filename;           ///< Path to the camera file
+    std::string out_filename;              ///< Where to save the file
+    std::string type;                      ///< Raw frame type
+    std::vector<int> dims;                 ///< Frame width and height
+    unsigned int pix_format;               ///< Raw frame type – v4l2 code
+    std::optional<std::string> saveConfig; ///< Where to save the configuration
+    std::optional<std::string> loadConfig; ///< Where to load the configuration from
 } Config;
 
 /**
@@ -75,7 +75,7 @@ void setConverter(CameraCapture &camera, unsigned int pix_format, bool &raw, int
 
 void checkRequiredArgs(cxxopts::ParseResult &result, std::vector<std::string> &required)
 {
-    for (auto& r : required)
+    for (auto &r : required)
     {
         if (result.count(r) == 0)
         {
@@ -101,9 +101,11 @@ Config parseOptions(int argc, char const *argv[])
 
     options.add_options()
         ("c, camera", "Filename of a camera device", cxxopts::value(config.camera_filename)->default_value("/dev/video0"))
-        ("t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",  cxxopts::value(config.type)) // TODO: more formats
+        ("t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)", cxxopts::value(config.type)) // TODO: more formats
         ("o, out", "Path to save the frame", cxxopts::value(config.out_filename))
         ("d, dims", "Frame width and height (eg. `960,720`)", cxxopts::value(config.dims))
+        ("s, save", "Save configuration to the file. You can provide the filename or the .camera-capture_<driver_name> file will be used", cxxopts::value(config.saveConfig)->implicit_value(""))
+        ("l, load", "Load the configuration from file. You can provide the filename or the .camera-capture_<driver_name> file will be used", cxxopts::value(config.loadConfig)->implicit_value(""))
         ("h, help", "Print usage");
 
     std::vector<std::string> required = {"type", "dims"};
@@ -161,109 +163,6 @@ Config parseOptions(int argc, char const *argv[])
     return config;
 }
 
-static void enumerateMenu(int fd)
-{
-
-    struct v4l2_querymenu querymenu;
-    printf("\n  Menu items:\n");
-
-    struct v4l2_queryctrl queryctrl;
-    memset(&querymenu, 0, sizeof(querymenu));
-    querymenu.id = queryctrl.id;
-
-    for (querymenu.index = queryctrl.minimum; querymenu.index <= queryctrl.maximum; querymenu.index++)
-    {
-        if (0 == ioctl(fd, VIDIOC_QUERYMENU, &querymenu))
-        {
-            printf("  %s\n", querymenu.name);
-        }
-    }
-}
-
-// for debugging
-/**
- * Show all parameters for the camera and set them to default values
- */
-void printAllCameraParams(CameraCapture &camera)
-{
-    int value;
-    std::cout << "\nCONTROLS\n";
-
-    struct v4l2_queryctrl queryctrl;
-    memset(&queryctrl, 0, sizeof(queryctrl));
-
-    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++)
-    {
-        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl))
-        {
-            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-            {
-                continue;
-            }
-
-            try
-            {
-                std::cout << "Control " << queryctrl.id << " " << queryctrl.name << " ";
-                camera.get(queryctrl.id, value);
-                std::cout << value << " default: ";
-                camera.get(queryctrl.id, value, false);
-
-                // set them to default value
-                std::cout << value << std::endl;
-                camera.set(queryctrl.id, value);
-            }
-            catch (CameraException e)
-            {
-                std::cout << "\e[31m" << e.what() << "\e[0m" << std::endl;
-            }
-
-            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-            {
-                enumerateMenu(camera.getFd());
-            }
-        }
-        else
-        {
-            if (errno == EINVAL)
-            {
-                continue;
-            }
-
-            perror("VIDIOC_QUERYCTRL");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    std::cout << "Private Base: \n";
-    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;; queryctrl.id++)
-    {
-        if (0 == ioctl(camera.getFd(), VIDIOC_QUERYCTRL, &queryctrl))
-        {
-            if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
-            {
-                continue;
-            }
-
-            printf("Control %s\n", queryctrl.name);
-
-            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-            {
-                enumerateMenu(camera.getFd());
-            }
-        }
-        else
-        {
-            if (errno == EINVAL)
-            {
-                break;
-            }
-
-            perror("VIDIOC_QUERYCTRL");
-            exit(EXIT_FAILURE);
-        }
-    }
-}
-
 int main(int argc, char const *argv[])
 {
     // SET UP THE CAMERA
@@ -272,6 +171,8 @@ int main(int argc, char const *argv[])
 
     Config conf = parseOptions(argc, argv);     ///< user's configuration
     CameraCapture camera(conf.camera_filename); ///< cameracapture object
+
+    camera.printControls();
 
     // adjust camera settings
     camera.setFormat(conf.dims[0], conf.dims[1], conf.pix_format); // set frame format
@@ -288,6 +189,17 @@ int main(int argc, char const *argv[])
     std::cout << "Format set to " << conf.type << " " << fmt.fmt.pix.pixelformat << ", " << std::get<0>(format) << " x "
               << std::get<1>(format) << std::endl;
 
+    if (conf.loadConfig.has_value())
+    {
+        std::string filename = camera.loadConfig(*conf.loadConfig);
+        std::cout << "Configuration loaded from " << filename << std::endl;
+    }
+
+    if (conf.saveConfig.has_value())
+    {
+        std::string filename = camera.saveConfig(*conf.saveConfig);
+        std::cout << "Configuration saved to " << filename << std::endl;
+    }
     // CAPTURE FRAME
     if (conf.out_filename != "")
     {
@@ -295,8 +207,8 @@ int main(int argc, char const *argv[])
 
         if (!raw)
         {
-            cv::Mat processed_frame = camera.capture(input_format); ///< captured frame
-            saveToFile(conf.out_filename + ".png", processed_frame);                        // save it
+            cv::Mat processed_frame = camera.capture(input_format);  ///< captured frame
+            saveToFile(conf.out_filename + ".png", processed_frame); // save it
         }
         else
         {

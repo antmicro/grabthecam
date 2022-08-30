@@ -23,7 +23,7 @@ public:
      */
     void setMessage(std::string text)
     {
-        msg = (error_code != 0) ? (std::to_string(error_code) + " " + strerror(error_code)) : "";
+        msg = (error_code != 0) ? (std::to_string(error_code) + " – " + strerror(error_code)) : "";
         msg = (text != "") ? (msg + "\n" + text) : msg;
     }
 
