@@ -3,13 +3,16 @@ set(CMAKE_CXX_STANDARD 20)
 
 project(camera-capture VERSION 0.1)
 
-find_package( OpenCV REQUIRED )
+find_package( OpenCV REQUIRED)
 
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
     include
     third-party/include/
+    third-party/rapidjson/include/
 )
+
+add_subdirectory("third-party/rapidjson")
 
 add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp

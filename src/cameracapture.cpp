@@ -1,10 +1,16 @@
 #include "camera-capture/cameracapture.hpp"
 #include "camera-capture/cameracapturetemplates.hpp"
 #include "camera-capture/utils.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
+#include <rapidjson/istreamwrapper.h>
+#include <rapidjson/ostreamwrapper.h>
 
 #include <fcntl.h> // O_RDWR
+#include <fstream> //save config
 #include <iostream>
 #include <libv4l2.h>
+#include <sstream>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
 
@@ -264,6 +270,86 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
 
 std::pair<int, int> CameraCapture::getFormat() const { return std::pair<int, int>(width, height); }
 
+
+void CameraCapture::enumerateMenu(v4l2_queryctrl &queryctrl) const
+{
+    struct v4l2_querymenu querymenu;
+    printf("        Available items:\n");
+
+    memset(&querymenu, 0, sizeof(querymenu));
+    querymenu.id = queryctrl.id;
+
+    for (querymenu.index = queryctrl.minimum; querymenu.index <= queryctrl.maximum; querymenu.index++)
+    {
+        if (0 == xioctl(fd, VIDIOC_QUERYMENU, &querymenu))
+        {
+            std::cout << "        " << querymenu.index << ". " << querymenu.name << std::endl;
+        }
+    }
+}
+
+int CameraCapture::printControl(v4l2_queryctrl &queryctrl) const
+{
+      if (0 == xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+        {
+            try
+            {
+                int value;
+                get(queryctrl.id, value);
+                std::cout << queryctrl.id << " " << queryctrl.name << ": " << value << " (default: ";
+                get(queryctrl.id, value, false);
+                std::cout << value << ")" << std::endl;
+            }
+            catch (CameraException e)
+            {
+                std::cout << "\e[31m" << e.what() << "\e[0m" << std::endl;
+            }
+
+            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+            {
+                enumerateMenu(queryctrl);
+            }
+        }
+        else
+        {
+            if (errno == EINVAL)
+            {
+                return 1;
+            }
+        }
+    return 0;
+}
+
+void CameraCapture::printControls() const
+{
+    int value;
+    std::cout << "\nCONTROLS\n" << "------------------\n";
+
+    struct v4l2_queryctrl queryctrl;
+    memset(&queryctrl, 0, sizeof(queryctrl));
+
+    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++)
+    {
+        printControl(queryctrl);
+    }
+
+    // private base
+    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;; queryctrl.id++)
+    {
+        if (printControl(queryctrl) == 1)
+        {
+            break;
+        }
+    }
+    for (queryctrl.id =  V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < V4L2_CID_CAMERA_CLASS_BASE + 36; queryctrl.id++)
+    {
+        printControl(queryctrl);
+    }
+
+    std::cout << std::endl;
+}
+
+
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
     if (ready_to_capture && buffers.size() != number_of_buffers)
@@ -311,7 +397,9 @@ void CameraCapture::checkBuffer(int buffer_no) const
 {
     if (!(buffers.size() > buffer_no && buffers[buffer_no]->bytesused > 0))
     {
-        throw CameraException("Canot read the frame from the buffer " + std::to_string(buffer_no) + ". Grab the frame first.");    }
+        throw CameraException("Cannot read the frame from the buffer " + std::to_string(buffer_no) +
+                              ". Grab the frame first.");
+    }
 }
 
 void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) const
@@ -348,4 +436,154 @@ cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of
         std::cerr << "WARNING: No converter provided - ommiting preprocessing\n";
     }
     return *frame;
+}
+
+std::string CameraCapture::getConfigFilename()
+{
+    // get the driver name
+    v4l2_capability cap;
+    try
+    {
+        runIoctl(VIDIOC_QUERYCAP, &cap);
+    }
+    catch (CameraException)
+    {
+        return ".camera_capture-unknown-driver";
+    }
+
+    std::stringstream ss;
+    ss << ".camera-capture-" << cap.driver;
+    return ss.str();
+}
+
+std::string CameraCapture::saveConfig(std::string filename)
+{
+    rapidjson::StringBuffer s;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
+
+    struct v4l2_queryctrl queryctrl;
+    memset(&queryctrl, 0, sizeof(queryctrl));
+
+    // Get values for all controls
+
+    writer.StartArray();
+    for (queryctrl.id = V4L2_CID_BASE; queryctrl.id < V4L2_CID_LASTP1; queryctrl.id++)
+    {
+        saveControlValue(queryctrl, writer);
+    }
+
+    for (queryctrl.id = V4L2_CID_PRIVATE_BASE;; queryctrl.id++)
+    {
+        if (saveControlValue(queryctrl, writer) == 1)
+        {
+            break;
+        };
+    }
+    for (queryctrl.id =  V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < V4L2_CID_CAMERA_CLASS_BASE + 36; queryctrl.id++)
+    {
+        saveControlValue(queryctrl, writer);
+    }
+    writer.EndArray();
+
+    std::fstream file;
+
+    if (filename == "")
+    {
+        filename = getConfigFilename();
+    }
+    createDirectories(filename);
+    file.open(filename, std::fstream::out);
+    if (!file.is_open())
+    {
+        throw CameraException("Save configuration: Could not open file for writing");
+    }
+    file << s.GetString();
+    file.close();
+
+    return filename;
+}
+
+std::string CameraCapture::loadConfig(std::string filename)
+{
+    // Read the file
+    if (filename == "")
+    {
+        filename = getConfigFilename();
+    }
+    std::ifstream file{filename};
+    if (!file.is_open())
+    {
+        throw CameraException("Load configuration: Could not open file for reading");
+    }
+
+    rapidjson::IStreamWrapper wrapper{file};
+
+    rapidjson::Document doc;
+    doc.ParseStream(wrapper);
+
+    if (doc.HasParseError())
+    {
+        throw CameraException("Wrong configuration file format: " +
+                              std::string(rapidjson::GetParseError_En(doc.GetParseError())));
+    }
+
+    auto properties = doc.GetArray();
+    int id, value;
+
+    for (auto itr = properties.Begin(); itr != properties.End(); itr++)
+    {
+        const rapidjson::Value &property = *itr;
+        if (!property.IsObject())
+        {
+            throw CameraException("Wrong configuration file format: The property is not an object.");
+        }
+
+        // Apply the values
+        id = itr->FindMember("id")->value.GetInt();
+        value = itr->FindMember("value")->value.GetInt();
+
+        try
+        {
+            set(id, value);
+        }
+        catch (CameraException e)
+        {
+            std::cerr << "[WARNING] Cannot set " << itr->FindMember("name")->value.GetString() << " (Error " << e.what() << ")\n";
+        }
+    }
+
+    return filename;
+}
+
+
+int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer)
+{
+    int value;
+    if (0 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+    {
+        if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        {
+            return 0;
+        }
+
+        get(queryctrl.id, value);
+        writer.StartObject();
+            writer.Key("id");
+            writer.Int(queryctrl.id);
+            writer.Key("name");
+            writer.String(reinterpret_cast<char const*>(queryctrl.name));
+            writer.Key("type");
+            writer.Int(queryctrl.type);
+            writer.Key("value");
+            writer.Int(value);
+        writer.EndObject();
+    }
+    else
+    {
+        if (errno == EINVAL)
+        {
+            return 1;
+        }
+    }
+    return 0;
 }

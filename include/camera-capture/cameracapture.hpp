@@ -5,6 +5,8 @@
 #include "camera-capture/frameconverter.hpp"
 #include <concepts>
 #include <opencv2/core/mat.hpp> // cv::Mat
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
 
 template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
 
@@ -68,6 +70,26 @@ public:
      * (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
      */
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
+
+    /**
+     * Save configuration to file
+     *
+     * Save camera parameters to file, so you can load them later.
+     *
+     * @param filename Where to save the configuration (by default it's `.camera-capture-<driver_name>`)
+     *
+     * @return Filename where the configuration was saved
+     */
+    std::string saveConfig(std::string filename = "");
+
+    /**
+     * Load configuration from file
+     *
+     * @param filename Where the configuration is located (by default searches in the current directory for `.camera-capture-<driver_name>` )
+     *
+     * @return Filename from where the configuration was loaded
+     */
+    std::string loadConfig(std::string filename = "");
 
     //--------------------------------------------------------------------------------------------------
 
@@ -152,6 +174,11 @@ public:
     std::pair<int, int> getFormat() const;
 
     /**
+     * Show all camera parameters
+     */
+    void printControls() const;
+
+    /**
      * Close the camera
      */
     ~CameraCapture();
@@ -218,6 +245,35 @@ private:
      * @param buffer_no Index of the camera buffer
      */
     void checkBuffer(int buffer_no) const;
+
+    /**
+     * Get control with a given id and add it as an object to a json string
+     *
+     * @param queryctrl A structure to fill with information about the property. The id field should be filled
+     * @param json Stringstream to which the object should be appended.i
+     *
+     * @return 0 if the property is valid or disabled, 1 otherwise.
+     */
+    int saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
+
+    /**
+     * Return the default filename for configuration
+     *
+     * @return ".camera-capture-<driver_name>"
+     */
+    std::string getConfigFilename();
+
+    /**
+     * Print items for menu controls
+     */
+    void enumerateMenu(v4l2_queryctrl &queryctrl) const;
+
+    /**
+     * Print control's name and current and default value.
+     *
+     * @return 0 if the property is valid or disabled, 1 otherwise.
+     */
+    int printControl(v4l2_queryctrl &queryctrl) const;
 
     int fd;                                           ///< A file descriptor to the opened camera
     int width;                                        ///< Frame width in pixels, currently set on the camera
