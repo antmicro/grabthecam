@@ -3,9 +3,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 project(camera-capture VERSION 0.1)
 
-find_package( OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 
-include_directories(
+set(INCLUDE_DIRECTORIES
     ${OpenCV_INCLUDE_DIRS}
     include
     third-party/include/
@@ -24,6 +24,12 @@ add_library(${PROJECT_NAME} SHARED
     src/cameracapture.cpp
 )
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIRECTORIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    v4l2
+    ${OpenCV_LIBS}
+)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION}
@@ -32,6 +38,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 add_executable(${PROJECT_NAME}-demo
     src/example.cpp
 )
+
+target_include_directories(${PROJECT_NAME}-demo PUBLIC ${INCLUDE_DIRECTORIES})
 
 target_link_libraries(${PROJECT_NAME}-demo PRIVATE
     ${PROJECT_NAME}
