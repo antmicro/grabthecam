@@ -17,8 +17,8 @@ add_subdirectory("third-party/rapidjson")
 add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp
     src/frameconverter.cpp
-    src/frameconverters/raw2yuvconverter.cpp
-    src/frameconverters/raw2bayerconverter.cpp
+    src/frameconverters/yuv2bgrconverter.cpp
+    src/frameconverters/bayer2bgrconverter.cpp
     src/frameconverters/anyformat2bgrconverter.cpp
     src/utils.cpp
     src/cameracapture.cpp

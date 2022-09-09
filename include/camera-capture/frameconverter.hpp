@@ -36,4 +36,6 @@ public:
      * @return Frame in desired format
      */
     virtual cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height);
+
+    int input_format; ///< cv::Mat format for the input frame
 };
