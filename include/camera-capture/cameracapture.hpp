@@ -3,10 +3,10 @@
 #include <linux/videodev2.h>
 
 #include "camera-capture/frameconverter.hpp"
-#include <concepts>
-#include <opencv2/core/mat.hpp> // cv::Mat
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
+#include <concepts>
+#include <opencv2/core/mat.hpp> // cv::Mat
 
 template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
 
@@ -99,20 +99,23 @@ public:
      * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter
      * @param value Numeric (int, float, bool...) variable, which will be filled with value
-     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
+     * returned
      */
     template <Numeric T> void get(int property, T &value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
      *
+     * If the dimentons are 0 x 0, only pixel format is changed
      * @throws CameraException
      * @param width Image width in pixels
      * @param height Image height in pixels
      * @param pixelformat The pixel format or type of compression
      * (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
+     * @param keep_converter If set to false, try to determine converter based on pixel format (see: autoSetConverter)
      */
-    void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat);
+    void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat = 0, bool keep_converter = false);
 
     /**
      * Save configuration to file
@@ -128,7 +131,8 @@ public:
     /**
      * Load configuration from file
      *
-     * @param filename Where the configuration is located (by default searches in the current directory for `.camera-capture-<driver_name>` )
+     * @param filename Where the configuration is located (by default searches in the current directory for
+     * `.camera-capture-<driver_name>` )
      *
      * @return Filename from where the configuration was loaded
      */
@@ -184,6 +188,8 @@ public:
      *
      * @param raw_frame_dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
+     * WARNING: You shouldn't provide the type other than provided in converter, when the object has one. (If in doubt,
+     * leave it with the default value -1)
      * @param buffer_no Index of camera buffer from  where the frame will be fetched. Default = 0
      * @param number_of_buffers Number of buffers to allocate (if not allocated yet). If this number is not equal to the
      * number of currently allocated buffers, the stream is restarted and new buffers are allocated.
@@ -193,7 +199,7 @@ public:
      *
      * @return Captured (and preprocessed) frame
      */
-    cv::Mat capture(int raw_frame_dtype, int buffer_no = 0, int number_of_buffers = 1,
+    cv::Mat capture(int raw_frame_dtype = -1, int buffer_no = 0, int number_of_buffers = 1,
                     std::vector<void *> locations = std::vector<void *>());
 
     //------------------------------------------------------------------------------------------------
@@ -202,6 +208,13 @@ public:
      * @param converter Converter object
      */
     void setConverter(std::shared_ptr<FrameConverter> converter) { this->converter = converter; }
+
+    /**
+     * Whether the object has a converter set
+     *
+     * @returns true if the converter is set, false otherwise
+     */
+    bool hasConverter() { return (bool)converter; }
 
     /**
      * Returns the camera's file descriptor
@@ -285,7 +298,8 @@ private:
      *
      * @throws CameraException
      * @param property Ioctl code of the parameter
-     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is returned
+     * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
+     * returned
      * @param ctrls Structure, which will be filled with the parameter's value
      */
     void getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
@@ -293,9 +307,18 @@ private:
     /**
      * Get current width and height. Set relevants fields.
      *
+     * @param keep_converter If set to false, try to determine converter based on pixel format (see: autoSetConverter)
+     *
      * @throws CameraException
      */
-    void updateFormat();
+    void updateFormat(bool keep_converter = false);
+
+    /**
+     * Try to determine (and set) converter based on pixel format
+     *
+     * @throws CameraException
+     */
+    void autoSetConverter();
 
     /*
      * Ask the device for the buffers to capture frames and allocate memory for them

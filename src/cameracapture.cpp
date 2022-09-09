@@ -1,5 +1,6 @@
 #include "camera-capture/cameracapture.hpp"
 #include "camera-capture/cameracapturetemplates.hpp"
+#include "camera-capture/pixelformatsinfo.hpp"
 #include "camera-capture/utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -14,6 +15,8 @@
 #include <sstream>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
+
+#define CAMERA_CLASS_CONTROLS_END V4L2_CID_CAMERA_CLASS_BASE + 36
 
 int xioctl(int fd, int request, void *arg)
 {
@@ -65,7 +68,7 @@ void CameraCapture::stopStreaming()
     }
 }
 
-void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat)
+void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned int pixelformat, bool keep_converter)
 {
     stopStreaming();
 
@@ -73,8 +76,11 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     v4l2_format fmt = {0};
 
     fmt.type = buffer_type;
-    fmt.fmt.pix.width = width;
-    fmt.fmt.pix.height = height;
+    if (!((width == 0) && (height == 0)))
+    {
+        fmt.fmt.pix.width = width;
+        fmt.fmt.pix.height = height;
+    }
     fmt.fmt.pix.pixelformat = pixelformat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
     if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
@@ -83,11 +89,32 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
     }
     else
     {
-        updateFormat();
+        updateFormat(keep_converter);
     }
 }
 
-void CameraCapture::updateFormat()
+void CameraCapture::autoSetConverter()
+{
+    v4l2_format fmt = {0};
+    fmt.type = buffer_type;
+    if (xioctl(fd, VIDIOC_G_FMT, &fmt) < 0)
+    {
+        throw CameraException("Getting format failed. See errno and VIDEOC_G_FMT docs for more information");
+    }
+
+    unsigned int pixelformat = fmt.fmt.pix.pixelformat;
+    try
+    {
+        setConverter(formats_info.at(pixelformat)());
+    }
+    catch (std::out_of_range)
+    {
+        std::cout << "Type " << pixelformat << " unrecognised. Set converter manually if needed.\n";
+        setConverter(nullptr);
+    }
+}
+
+void CameraCapture::updateFormat(bool keep_converter)
 {
     v4l2_format fmt = {0};
     fmt.type = buffer_type;
@@ -99,6 +126,10 @@ void CameraCapture::updateFormat()
 
     height = fmt.fmt.pix.height;
     width = fmt.fmt.pix.width;
+    if (!keep_converter)
+    {
+        autoSetConverter();
+    }
 }
 
 void CameraCapture::runIoctl(int ioctl, void *value) const
@@ -271,7 +302,6 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
 
 std::pair<int, int> CameraCapture::getFormat() const { return std::pair<int, int>(width, height); }
 
-
 void CameraCapture::enumerateMenu(v4l2_queryctrl &queryctrl) const
 {
     struct v4l2_querymenu querymenu;
@@ -291,40 +321,41 @@ void CameraCapture::enumerateMenu(v4l2_queryctrl &queryctrl) const
 
 int CameraCapture::printControl(v4l2_queryctrl &queryctrl) const
 {
-      if (0 == xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+    if (0 == xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+    {
+        try
         {
-            try
-            {
-                int value;
-                get(queryctrl.id, value);
-                std::cout << queryctrl.id << " " << queryctrl.name << ": " << value << " (default: ";
-                get(queryctrl.id, value, false);
-                std::cout << value << ")" << std::endl;
-            }
-            catch (CameraException e)
-            {
-                std::cout << "\e[31m" << e.what() << "\e[0m" << std::endl;
-            }
+            int value;
+            get(queryctrl.id, value);
+            std::cout << queryctrl.id << " " << queryctrl.name << ": " << value << " (default: ";
+            get(queryctrl.id, value, false);
+            std::cout << value << ")" << std::endl;
+        }
+        catch (CameraException e)
+        {
+            std::cout << "\e[31m" << e.what() << "\e[0m" << std::endl;
+        }
 
-            if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
-            {
-                enumerateMenu(queryctrl);
-            }
-        }
-        else
+        if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
         {
-            if (errno == EINVAL)
-            {
-                return 1;
-            }
+            enumerateMenu(queryctrl);
         }
+    }
+    else
+    {
+        if (errno == EINVAL)
+        {
+            return 1;
+        }
+    }
     return 0;
 }
 
 void CameraCapture::printControls() const
 {
     int value;
-    std::cout << "\nCONTROLS\n" << "------------------\n";
+    std::cout << "\nCONTROLS\n"
+              << "------------------\n";
 
     struct v4l2_queryctrl queryctrl;
     memset(&queryctrl, 0, sizeof(queryctrl));
@@ -342,14 +373,13 @@ void CameraCapture::printControls() const
             break;
         }
     }
-    for (queryctrl.id =  V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < V4L2_CID_CAMERA_CLASS_BASE + 36; queryctrl.id++)
+    for (queryctrl.id = V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < CAMERA_CLASS_CONTROLS_END; queryctrl.id++)
     {
         printControl(queryctrl);
     }
 
     std::cout << std::endl;
 }
-
 
 void CameraCapture::grab(int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
@@ -423,12 +453,26 @@ void CameraCapture::read(cv::Mat &frame, int dtype, int buffer_no) const
 
 cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of_buffers, std::vector<void *> locations)
 {
+    // set raw_frame_dtype from converter
+    if (hasConverter())
+    {
+        if (raw_frame_dtype != -1 && raw_frame_dtype != converter->input_format)
+        {
+            throw CameraException(
+                "capture: raw_frame_dtype shouldn't be provided for the cameracapture with a converter");
+        }
+        else
+        {
+            raw_frame_dtype = converter->input_format;
+        }
+    }
+
     std::shared_ptr<cv::Mat> frame;
 
     grab(buffer_no, number_of_buffers, locations);
     read(frame, raw_frame_dtype, buffer_no);
 
-    if (converter != nullptr)
+    if (hasConverter())
     {
         frame = std::make_shared<cv::Mat>(converter->convert(*frame));
     }
@@ -480,7 +524,7 @@ std::string CameraCapture::saveConfig(std::string filename)
             break;
         };
     }
-    for (queryctrl.id =  V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < V4L2_CID_CAMERA_CLASS_BASE + 36; queryctrl.id++)
+    for (queryctrl.id = V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < CAMERA_CLASS_CONTROLS_END; queryctrl.id++)
     {
         saveControlValue(queryctrl, writer);
     }
@@ -549,18 +593,18 @@ std::string CameraCapture::loadConfig(std::string filename)
         }
         catch (CameraException e)
         {
-            std::cerr << "[WARNING] Cannot set " << itr->FindMember("name")->value.GetString() << " (Error " << e.what() << ")\n";
+            std::cerr << "[WARNING] Cannot set " << itr->FindMember("name")->value.GetString() << " (Error " << e.what()
+                      << ")\n";
         }
     }
 
     return filename;
 }
 
-
 int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer)
 {
     int value;
-    if (0 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+    if (xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) == 0)
     {
         if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
         {
@@ -569,14 +613,14 @@ int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::Pretty
 
         get(queryctrl.id, value);
         writer.StartObject();
-            writer.Key("id");
-            writer.Int(queryctrl.id);
-            writer.Key("name");
-            writer.String(reinterpret_cast<char const*>(queryctrl.name));
-            writer.Key("type");
-            writer.Int(queryctrl.type);
-            writer.Key("value");
-            writer.Int(value);
+        writer.Key("id");
+        writer.Int(queryctrl.id);
+        writer.Key("name");
+        writer.String(reinterpret_cast<char const *>(queryctrl.name));
+        writer.Key("type");
+        writer.Int(queryctrl.type);
+        writer.Key("value");
+        writer.Int(value);
         writer.EndObject();
     }
     else

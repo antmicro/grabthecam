@@ -4,7 +4,7 @@
 #include <opencv2/core/mat.hpp> // cv::Mat
 
 /**
- * Exception to handle errors from camera Class
+ * Exception to handle errors from CameraCapture
  */
 class CameraException : public std::exception
 {
