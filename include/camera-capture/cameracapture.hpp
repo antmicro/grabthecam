@@ -20,6 +20,49 @@ class CameraCapture
 {
 public:
     /**
+     * @brief Helper object that denotes status of property queries
+     *
+     */
+    enum class CameraPropertyStatus
+    {
+        ENABLED,
+        DISABLED,
+        UNSUPPORTED,
+    };
+
+    /**
+     * @brief Helper wrapper over v4l2_queryctrl
+     *
+     */
+    struct CameraProperty
+    {
+        int32_t id;
+        std::string name;
+        uint32_t type;
+        int64_t defaultValue;
+    };
+
+    /**
+     * @brief Helper wrapper over v4l2_querymenu
+     *
+     */
+    struct CameraPropertyMenuEntry
+    {
+        uint32_t index;
+        std::string name;
+    };
+
+    /**
+     * @brief Helper structure that can hold results of multiple queries against the property
+     *
+     */
+    struct CameraPropertyDetails
+    {
+        CameraProperty property;
+        std::vector<CameraPropertyMenuEntry> menuEntries;
+    };
+
+    /**
      * Open the Camera
      *
      * @throws CameraException
@@ -177,6 +220,39 @@ public:
      * Show all camera parameters
      */
     void printControls() const;
+
+    /**
+     * @brief Query information about a property
+     *
+     * @param propertyID Index of queried property
+     * @param property A reference to a CameraProperty object to be filled with fetched data
+     * @return CameraPropertyStatus
+     * @throws CameraException
+     */
+    CameraPropertyStatus queryProperty(int32_t propertyID, CameraProperty& property) const;
+
+    /**
+     * @return Vector of CameraProperty
+     * @throws CameraException
+     */
+    std::vector<CameraProperty> queryProperties() const;
+
+    /**
+     * @brief Query all menu entries for given property
+     *
+     * @param propertyID Index of queried property
+     * @return std::vector<CameraPropertyMenuEntry>
+     */
+    std::vector<CameraPropertyMenuEntry> queryPropertyMenuEntries(int32_t propertyID) const;
+
+    /**
+     * @brief
+     *
+     * @param propertyID Index of queried property
+     * @return CameraPropertyDetails
+     * @throws CameraException
+     */
+    CameraPropertyDetails queryPropertyDetails(int32_t propertyID) const;
 
     /**
      * Close the camera
