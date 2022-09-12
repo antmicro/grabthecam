@@ -10,6 +10,7 @@
 #include <fstream> //save config
 #include <iostream>
 #include <libv4l2.h>
+#include <ranges>
 #include <sstream>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
@@ -586,4 +587,107 @@ int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::Pretty
         }
     }
     return 0;
+}
+
+CameraCapture::CameraPropertyStatus CameraCapture::queryProperty(int32_t propertyID, CameraProperty& property) const
+{
+    v4l2_queryctrl queryctrl;
+    memset(&queryctrl, 0, sizeof(queryctrl));
+    queryctrl.id = propertyID;
+
+    if (!xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl))
+    {
+        if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+        {
+            return CameraPropertyStatus::DISABLED;
+        }
+        get(queryctrl.id, property.defaultValue, false);
+        property.id = propertyID;
+        property.name = (char *)queryctrl.name;
+        property.type = queryctrl.type;
+
+        return CameraPropertyStatus::ENABLED;
+    }
+    else if (errno == EINVAL)
+    {
+        return CameraPropertyStatus::UNSUPPORTED;
+    }
+    else
+    {
+        throw CameraException("Unknown error");
+    }
+}
+
+std::vector<CameraCapture::CameraProperty> CameraCapture::queryProperties() const
+{
+    std::vector<CameraProperty> result;
+    CameraProperty property;
+
+    auto properties = std::vector{
+        std::views::iota(V4L2_CID_BASE, V4L2_CID_LASTP1),
+        std::views::iota(V4L2_CID_CAMERA_CLASS_BASE, V4L2_CID_CAMERA_CLASS_BASE + 36)
+        } | std::views::join;
+
+    for (int32_t propertyID : properties)
+    {
+        if(queryProperty(propertyID, property) != CameraPropertyStatus::ENABLED)
+        {
+            continue;
+        }
+
+        result.push_back(property);
+    }
+    for (int32_t propertyID : std::views::iota(V4L2_CID_PRIVATE_BASE))
+    {
+        CameraPropertyStatus status = queryProperty(propertyID, property);
+
+        if(status == CameraPropertyStatus::DISABLED)
+            continue;
+
+        if(status == CameraPropertyStatus::UNSUPPORTED)
+            break;
+
+        result.push_back(property);
+    }
+
+    return result;
+}
+
+std::vector<CameraCapture::CameraPropertyMenuEntry> CameraCapture::queryPropertyMenuEntries(int32_t propertyID) const
+{
+    std::vector<CameraCapture::CameraPropertyMenuEntry> result;
+
+    v4l2_queryctrl queryctrl;
+    memset(&queryctrl, 0, sizeof(queryctrl));
+    queryctrl.id = propertyID;
+    xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl);
+
+    v4l2_querymenu querymenu;
+    memset(&querymenu, 0, sizeof(querymenu));
+    querymenu.id = queryctrl.id;
+
+    for (querymenu.index = queryctrl.minimum; querymenu.index <= queryctrl.maximum; querymenu.index++)
+    {
+        if (not xioctl(fd, VIDIOC_QUERYMENU, &querymenu))
+        {
+            result.push_back({querymenu.index, (char *)querymenu.name});
+        }
+    }
+
+    return result;
+}
+
+CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t propertyID) const
+{
+    CameraProperty property;
+    if (queryProperty(propertyID, property) != CameraPropertyStatus::ENABLED)
+    {
+        throw CameraException("Queried against unsupported property");
+    }
+
+    return CameraPropertyDetails{
+        .property = property,
+        .menuEntries = property.type == V4L2_CTRL_TYPE_MENU ?
+            queryPropertyMenuEntries(propertyID) : std::vector<CameraPropertyMenuEntry>()
+    };
 }
