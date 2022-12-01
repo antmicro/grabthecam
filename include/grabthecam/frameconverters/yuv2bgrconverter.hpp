@@ -1,6 +1,9 @@
 #pragma once
 
-#include "camera-capture/frameconverter.hpp"
+#include "grabthecam/frameconverter.hpp"
+
+namespace grabthecam
+{
 
 /**
  * Class for processing YUV Frames
@@ -37,4 +40,6 @@ public:
 private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)
     int dest_mat_type; ///< OpenCV's datatype for destination matrix (see: constructor)
+};
+
 };

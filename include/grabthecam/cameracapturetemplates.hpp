@@ -1,4 +1,7 @@
-#include "camera-capture/cameracapture.hpp"
+#include "grabthecam/cameracapture.hpp"
+
+namespace grabthecam
+{
 
 template <Numeric T> void CameraCapture::set(int property, T value, bool warning)
 {
@@ -15,3 +18,5 @@ template <Numeric T> void CameraCapture::get(int property, T &value, bool curren
     getCtrls(property, current, ctrls);
     value = ctrls.controls[0].value;
 }
+
+};

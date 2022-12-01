@@ -1,11 +1,14 @@
 #pragma once
 
-#include "camera-capture/frameconverters/anyformat2bgrconverter.hpp"
-#include "camera-capture/frameconverters/bayer2bgrconverter.hpp"
-#include "camera-capture/frameconverters/yuv2bgrconverter.hpp"
+#include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
+#include "grabthecam/frameconverters/bayer2bgrconverter.hpp"
+#include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
 #include "opencv2/imgproc.hpp"
 #include <iostream>
 #include <linux/videodev2.h>
+
+namespace grabthecam
+{
 
 static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConverter>()>> formats_info = {
     {V4L2_PIX_FMT_YYUV, []{return std::make_shared<Yuv2BGRConverter>(cv::COLOR_YUV2BGR_YUY2);}},
@@ -16,3 +19,4 @@ static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConve
     {V4L2_PIX_FMT_SRGGB10, []{return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3);}}
 }; ///< Information about converters and input formats assigned to pixel formats
 
+};

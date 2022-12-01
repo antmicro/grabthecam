@@ -1,9 +1,12 @@
-#include "camera-capture/utils.hpp"
+#include "grabthecam/utils.hpp"
 
 #include <filesystem> // checking if the directory exists
 #include <fstream>    // ofstream
 #include <iostream>
 #include <opencv2/imgcodecs.hpp> // imwrite
+
+namespace grabthecam
+{
 
 void createDirectories(std::string filename)
 {
@@ -43,3 +46,5 @@ void saveToFile(std::string filename, cv::Mat &frame)
         throw CameraException("Cannot save the processed Frame");
     }
 }
+
+};

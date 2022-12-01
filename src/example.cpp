@@ -1,13 +1,13 @@
-#include "camera-capture/cameracapture.hpp"
-#include "camera-capture/cameracapturetemplates.hpp"
-#include "camera-capture/frameconverters/anyformat2bgrconverter.hpp"
-#include "camera-capture/frameconverters/bayer2bgrconverter.hpp"
-#include "camera-capture/frameconverters/yuv2bgrconverter.hpp"
-#include "camera-capture/pixelformatsinfo.hpp"
+#include "grabthecam/cameracapture.hpp"
+#include "grabthecam/cameracapturetemplates.hpp"
+#include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
+#include "grabthecam/frameconverters/bayer2bgrconverter.hpp"
+#include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
+#include "grabthecam/pixelformatsinfo.hpp"
 #include "cxxopts/cxxopts.hpp"
 #include <opencv2/imgproc.hpp>
 
-#include "camera-capture/utils.hpp"
+#include "grabthecam/utils.hpp"
 
 /**
  * User's preferred configuration
@@ -35,7 +35,7 @@ Config parseOptions(int argc, char const *argv[])
     cxxopts::ParseResult result;
 
     // Set available options
-    cxxopts::Options options("Camera-capture", "A demo for camera-capture – lightweight, easily adjustable library for "
+    cxxopts::Options options(argv[0], "A demo for grabthecam – lightweight, easily adjustable library for "
                                                "managing v4l cameras and capturing frames.");
 
     options.add_options()("c, camera", "Filename of a camera device",
@@ -45,10 +45,10 @@ Config parseOptions(int argc, char const *argv[])
         "d, dims", "Frame width and height (eg. `960,720`)",
         cxxopts::value(config.dims))("s, save",
                                      "Save configuration to the file. You can provide the filename or the "
-                                     ".camera-capture_<driver_name> file will be used",
+                                     ".pyvidctrl_<driver_name> file will be used",
                                      cxxopts::value(config.saveConfig)->implicit_value(""))(
         "l, load",
-        "Load the configuration from file. You can provide the filename or the .camera-capture_<driver_name> file will "
+        "Load the configuration from file. You can provide the filename or the .pyvidctrl_<driver_name> file will "
         "be used",
         cxxopts::value(config.loadConfig)->implicit_value(""))("h, help", "Print usage");
 
@@ -70,7 +70,7 @@ Config parseOptions(int argc, char const *argv[])
         std::cout << options.help() << std::endl;
         exit(1);
     }
-    catch (CameraException e)
+    catch (grabthecam::CameraException e)
     {
         std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl << std::endl;
         std::cout << options.help() << std::endl;
@@ -112,7 +112,7 @@ int main(int argc, char const *argv[])
 {
     // SET UP THE CAMERA
     Config conf = parseOptions(argc, argv);     ///< user's configuration
-    CameraCapture camera(conf.camera_filename); ///< cameracapture object
+    grabthecam::CameraCapture camera(conf.camera_filename); ///< cameracapture object
 
     camera.printControls();
 
@@ -151,11 +151,11 @@ int main(int argc, char const *argv[])
         if (camera.hasConverter())
         {
             cv::Mat processed_frame = camera.capture();              ///< captured frame
-            saveToFile(conf.out_filename + ".png", processed_frame); // save it
+            grabthecam::saveToFile(conf.out_filename + ".png", processed_frame); // save it
         }
         else
         {
-            std::shared_ptr<MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
+            std::shared_ptr<grabthecam::MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
             camera.grab();                                             // fetch the frame to camera's buffer 0
             camera.read(raw_frame);                                    // read content from the buffer
             rawToFile(conf.out_filename + "." + conf.type, raw_frame); // save it
