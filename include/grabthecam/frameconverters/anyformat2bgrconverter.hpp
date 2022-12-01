@@ -1,6 +1,9 @@
 #pragma once
 
-#include "camera-capture/frameconverter.hpp"
+#include "grabthecam/frameconverter.hpp"
+
+namespace grabthecam
+{
 
 /**
  * Class for processing BGRA888 (AR24) frames
@@ -38,4 +41,6 @@ private:
     int code;        ///< OpenCV's Color space conversion code (see: constructor)
     int dest_mat_type; ///< OpenCV's datatype for destination matrix (see: constructor)
     int nchannels;   ///< number of channels in the destination image (see: constructor)
+};
+
 };

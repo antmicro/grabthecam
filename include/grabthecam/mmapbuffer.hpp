@@ -1,5 +1,8 @@
 #pragma once
 
+namespace grabthecam
+{
+
 /**
  * Class for managing memory mapping and keeping information about buffer.
  */
@@ -25,4 +28,6 @@ public:
     unsigned int bytesused; ///< bytes used by a captured frame
     void *start;            ///< pointer to the memory location, where the buffer starts
     int size;               ///< size of the buffer
+};
+
 };

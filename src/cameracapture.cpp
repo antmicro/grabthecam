@@ -1,7 +1,7 @@
-#include "camera-capture/cameracapture.hpp"
-#include "camera-capture/cameracapturetemplates.hpp"
-#include "camera-capture/pixelformatsinfo.hpp"
-#include "camera-capture/utils.hpp"
+#include "grabthecam/cameracapture.hpp"
+#include "grabthecam/cameracapturetemplates.hpp"
+#include "grabthecam/pixelformatsinfo.hpp"
+#include "grabthecam/utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include <rapidjson/istreamwrapper.h>
@@ -15,6 +15,9 @@
 #include <sstream>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
+
+namespace grabthecam
+{
 
 #define CAMERA_CLASS_CONTROLS_END V4L2_CID_CAMERA_CLASS_BASE + 36
 
@@ -493,11 +496,11 @@ std::string CameraCapture::getConfigFilename()
     }
     catch (CameraException)
     {
-        return ".camera_capture-unknown-driver";
+        return ".pyvidctrl-unknown-driver";
     }
 
     std::stringstream ss;
-    ss << ".camera-capture-" << cap.driver;
+    ss << ".pyvidctrl-" << cap.driver;
     return ss.str();
 }
 
@@ -735,3 +738,5 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
             queryPropertyMenuEntries(propertyID) : std::vector<CameraPropertyMenuEntry>()
     };
 }
+
+};

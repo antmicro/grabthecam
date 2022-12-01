@@ -1,7 +1,10 @@
 #pragma once
 
-#include "camera-capture/mmapbuffer.hpp"
+#include "grabthecam/mmapbuffer.hpp"
 #include <opencv2/core/mat.hpp> // cv::Mat
+
+namespace grabthecam
+{
 
 /**
  * Exception to handle errors from CameraCapture
@@ -66,3 +69,5 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame);
  * @param frame The frame to save
  */
 void saveToFile(std::string filename, cv::Mat &frame);
+
+};

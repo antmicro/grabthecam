@@ -2,13 +2,16 @@
 
 #include <linux/videodev2.h>
 
-#include "camera-capture/frameconverter.hpp"
+#include "grabthecam/frameconverter.hpp"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include <concepts>
 #include <opencv2/core/mat.hpp> // cv::Mat
 
 template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
+
+namespace grabthecam
+{
 
 /**
  * Handles capturing frames from v4l cameras
@@ -122,7 +125,7 @@ public:
      *
      * Save camera parameters to file, so you can load them later.
      *
-     * @param filename Where to save the configuration (by default it's `.camera-capture-<driver_name>`)
+     * @param filename Where to save the configuration (by default it's `.pyvidctrl-<driver_name>`)
      *
      * @return Filename where the configuration was saved
      */
@@ -132,7 +135,7 @@ public:
      * Load configuration from file
      *
      * @param filename Where the configuration is located (by default searches in the current directory for
-     * `.camera-capture-<driver_name>` )
+     * `.pyvidctrl-<driver_name>` )
      *
      * @return Filename from where the configuration was loaded
      */
@@ -358,7 +361,7 @@ private:
     /**
      * Return the default filename for configuration
      *
-     * @return ".camera-capture-<driver_name>"
+     * @return ".pyvidctrl-<driver_name>"
      */
     std::string getConfigFilename();
 
@@ -382,4 +385,6 @@ private:
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
+};
+
 };

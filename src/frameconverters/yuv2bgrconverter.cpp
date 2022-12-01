@@ -1,6 +1,9 @@
-#include "camera-capture/frameconverters/yuv2bgrconverter.hpp"
+#include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
 
 #include <opencv2/imgproc.hpp> //cvtColor
+
+namespace grabthecam
+{
 
 cv::Mat Yuv2BGRConverter::convert(cv::Mat src)
 {
@@ -8,3 +11,5 @@ cv::Mat Yuv2BGRConverter::convert(cv::Mat src)
     cv::cvtColor(src, processed_frame, code);
     return processed_frame;
 }
+
+};

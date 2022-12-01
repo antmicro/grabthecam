@@ -1,8 +1,11 @@
-#include "camera-capture/mmapbuffer.hpp"
-#include "camera-capture/utils.hpp"
+#include "grabthecam/mmapbuffer.hpp"
+#include "grabthecam/utils.hpp"
 
 #include <cstring>    //memset
 #include <sys/mman.h> // PROT_READ...
+
+namespace grabthecam
+{
 
 MMapBuffer::MMapBuffer(void *location, int size, int fd, int offset) : size(size)
 {
@@ -16,3 +19,5 @@ MMapBuffer::MMapBuffer(void *location, int size, int fd, int offset) : size(size
 }
 
 MMapBuffer::~MMapBuffer() { munmap(start, size); }
+
+};

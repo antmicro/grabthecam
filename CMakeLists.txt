@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10.0)
 set(CMAKE_CXX_STANDARD 20)
 
-project(camera-capture VERSION 0.1)
+project(grabthecam VERSION 0.1)
 
 find_package(OpenCV REQUIRED)
+find_package(RapidJSON REQUIRED)
 
 set(INCLUDE_DIRECTORIES
     ${OpenCV_INCLUDE_DIRS}
@@ -11,8 +12,6 @@ set(INCLUDE_DIRECTORIES
     third-party/include/
     third-party/rapidjson/include/
 )
-
-add_subdirectory("third-party/rapidjson")
 
 add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp
@@ -50,14 +49,12 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
     ${OpenCV_LIBS}
 )
 
-add_compile_options(-Wall -Wextra -pedantic -Werror -o)
-
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
 install(
-    DIRECTORY include/camera-capture/ DESTINATION include/camera-capture/
+    DIRECTORY include/grabthecam/ DESTINATION include/grabthecam/
 )
 
 

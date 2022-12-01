@@ -1,7 +1,10 @@
 #pragma once
 
-#include "camera-capture/mmapbuffer.hpp"
+#include "grabthecam/mmapbuffer.hpp"
 #include <opencv2/core/mat.hpp>
+
+namespace grabthecam
+{
 
 /**
  * Converts the frame form one format to another.
@@ -9,7 +12,6 @@
  * Provides C++ API for processing frames
  * See how it can be used in src/example.cpp.
  */
-
 class FrameConverter
 {
 public:
@@ -38,4 +40,6 @@ public:
     virtual cv::Mat convert(std::shared_ptr<MMapBuffer> src, int src_dtype, int width, int height);
 
     int input_format; ///< cv::Mat format for the input frame
+};
+
 };
