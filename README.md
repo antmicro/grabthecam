@@ -7,15 +7,15 @@ A C++ library for controlling video4linux cameras and capturing frames.
 The library provides low-level access to all camera properties with the convenience of high-level API.
 Its capabilities include:
 
-- managing the camera properties using ioctl codes
-- configuring the frame format
-- fetching frames (also to the specific location in memory)
-- preprocessing raw frames
+- camera properties management using ioctl codes
+- frame format configuration
+- frame fetching (also to the specific location in memory)
+- raw frame preprocessing
 - saving camera configuration to file
 
 ## Building the project
 
-The project requires:
+Project requirements:
 
 * [OpenCV](https://opencv.org/releases/) library
 * [RapidJSON](https://rapidjson.org/) library
@@ -29,7 +29,7 @@ cmake -s . -B build
 
 ## Running the demo
 
-After the successful build, you can run the demo. E.g.:
+After a successful build, you can run the demo, e.g.:
 
 ```
 cd build
@@ -59,13 +59,13 @@ sudo make install
 
 All functions and classes for `grabthecam` library are in the `grabthecam` C++ namespace.
 
-The core of the library is the `CameraCapture` class. Use it for adjusting the camera settings, grabbing and reading frames.
+The core of the library is the `CameraCapture` class. Use it to adjust camera settings, grab and read frames.
 
-If you want to preprocess the raw photo, you have to set the frame converter. Frame converters operate on OpenCV's matrices. Currently implemented converters support all formats convertible via [openCV's `cvtColor` and `demosaicing` functions][cv_colors] (including many types of YUV and Bayer frames).
+If you want to preprocess a raw photo, you need to set a frame converter. Frame converters operate on OpenCV's matrices. Currently implemented converters support all formats convertible via [openCV's `cvtColor` and `demosaicing` functions][cv_colors] (including many types of YUV and Bayer frames).
 
 ### Create and setup an instance of `CameraCapture`
 
-#### Create the instance of CameraCapture
+#### Create an instance of CameraCapture
 
 The constructor will:
 - open the camera "/dev/video0" device and set a file descriptor for it
@@ -79,10 +79,10 @@ You can check the value of this fields via `camera.getFd()` and `camera.getForma
 grabthecam::CameraCapture camera("/dev/video0");
 ```
 
-#### Set format of frames
+#### Set frame format
 
 - set frame resolution to 960x720
-- set the color model for the raw camera frame. You can check formats supported by your camera, by running `v4l2-ctl --list-formats` in the terminal. Format identifier comes from the v4l2 library. Available formats are listed [here](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
+- set the color model to a raw camera frame. You can check formats supported by your camera, by running `v4l2-ctl --list-formats` in the terminal. The format identifier comes from the v4l2 library. Available formats are listed [here](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
 
 ```c++
 camera.setFormat(960, 720, V4L2_PIX_FMT_YYUV);
@@ -90,13 +90,13 @@ camera.setFormat(960, 720, V4L2_PIX_FMT_YYUV);
 
 #### Create a converter and assign it to the camera
 
-When you set a `FrameConverter` for the `CameraCapture` object, it can return frames in format, which you can easily open (e.g. RGB).
+When you set up a `FrameConverter` for the `CameraCapture` object, it can return frames in a format which you can easily open (e.g. RGB).
 
-`FrameConverter` is a base, abstract class. To assign the converter, choose `Raw2YuvConverter`, `Raw2BayerConverter` or `AnyFormat2bgrConverter`. You can also add your own converter. See the instruction for it in [Extending raw frame converters
+`FrameConverter` is a base, abstract class. To assign the converter, choose `Raw2YuvConverter`, `Raw2BayerConverter` or `AnyFormat2bgrConverter`. You can also add your own converter - see the instructions in the [Extending raw frame converters
 ](#Extending raw frame converters) section.
 
-- `Raw2YuvConverter` uses the [cv::cvtColor][cv_colors] method, adjusted to YUV format. You have to pass [color space conversion code][cv_colors] for your YUV format and optionally datatype for a destination matrix. The default type is `CV_8UC3`, which means the output will have three layers (R, G, B) with 8 bits unsigned type.
-- `Raw2BayerConverter` uses [cv::demosaicing][cv_colors] method. It also needs the conversion code and the type of the destination matrix.
+- `Raw2YuvConverter` uses the [cv::cvtColor][cv_colors] method, adjusted to the YUV format. You need to pass [color space conversion code][cv_colors] for your YUV format and optionally datatype for a destination matrix. The default type is `CV_8UC3`, which means the output will have three layers (R, G, B) with 8 bits unsigned type.
+- `Raw2BayerConverter` uses the [cv::demosaicing][cv_colors] method. It also needs the conversion code and the type of the destination matrix.
 - `AnyFormat2bgrConverter` is the most generic one. It's very similar to the `Raw2YuvConverter` but allows you to adjust `nChannels`.
 
 You can find more information about color conversion in OpenCV in the [cvtColor function documentation](https://docs.opencv.org/3.4/d8/d01/group__imgproc__color__conversions.html#ga397ae87e1288a81d2363b61574eb8cab).
@@ -109,7 +109,7 @@ std::shared_ptr<grabthecam::FrameConverter> converter = std::make_shared<grabthe
 camera.setConverter(converter);
 ```
 
-### Change the camera settings
+### Change camera settings
 
 The library allows to manage all properties supported by the camera. You can check them by running `v4l2-ctl --list-ctrls` or executing `camera.printControls()` method. You can get and set the controls using [codes from the V4l2 library](https://www.kernel.org/doc/html/v4.9/media/uapi/v4l/control.html).
 
@@ -128,7 +128,7 @@ std::cout << value << std::endl; // the variable is filled with the current valu
 camera.set(V4L2_CID_BRIGHTNESS, 128);
 ```
 
-Besides changing properties, you can run all ioctl codes (including custom ones). E.g.:
+Besides changing properties, you can run all ioctl codes (including custom ones), e.g.:
 
 ```c++
 // Run different ioctl code
@@ -136,9 +136,9 @@ int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 camera.runIoctl(VIDIOC_STREAMOFF, &buffer_type);
 ```
 
-### Save and load the camera settings
+### Save and load camera settings
 
-To save time, you can save the camera configuration to the file. Simply run:
+To save time, you can save the camera configuration to a file. Simply run:
 
 ```c++
 camera.saveConfig();
@@ -156,12 +156,12 @@ The configuration format is fully compatible with [pyvidctrl](https://github.com
 
 ### Capture and save a raw frame
 
-We can cleave off several stages of capturing the frame:
+We can cleave off several stages of capturing a frame:
 1. `grab` – fetch a frame to the buffer of the camera
 1. `read` – read the frame from the camera to the computer's memory
-1. preprocess – eg. convert frame from one color space to another (optional)
+1. preprocess – e.g. convert frame from one color space to another (optional)
 
-Hence, the process of capturing raw frame will look as follows:
+This way, the raw frame capture process will look as follows:
 
 ```c++
 #include <grabthecam/utils.hpp>
@@ -185,11 +185,11 @@ grabthecam::saveToFile("frame.png", frame);
 
 ## Extending raw frame converters
 
-The frame converters, available in the library, can preprocess raw frames. Currently, we support all formats convertible via [openCV's `cvtColor` and `demosaicing` functions][cv_colors].
+The frame converters available in the library can preprocess raw frames. Currently, we support all formats convertible via [openCV's `cvtColor` and `demosaicing` functions][cv_colors].
 
-To add a new converter, simply create a new class, inheriting from `FrameConverter`. It should implement the `convert` method.
+To add a new converter, simply create a new class, inheriting from `FrameConverter`. It will implement the `convert` method.
 
-If you would like to use your converter in the demo, go to the `src/example.cpp`. Add the converter to options, `pix_formats` and create a case for it in `setConverter` function. You should also add your cpp file to `CMakeLists.txt`, to allow automatic build.
+If you would like to use your converter in the demo, go to `src/example.cpp`. Add the converter to options, `pix_formats` and create a case for it in the `setConverter` function. You should also add your cpp file to `CMakeLists.txt` to allow automatic build.
 
 ## Licensing
 
