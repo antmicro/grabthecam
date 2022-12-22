@@ -8,9 +8,12 @@ find_package(RapidJSON REQUIRED)
 
 set(INCLUDE_DIRECTORIES
     ${OpenCV_INCLUDE_DIRS}
-    include
-    third-party/include/
-    third-party/rapidjson/include/
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/include/>
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include/>
+    $<INSTALL_INTERFACE:include>
 )
 
 add_library(${PROJECT_NAME} SHARED
@@ -49,12 +52,28 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
     ${OpenCV_LIBS}
 )
 
+configure_file(
+    ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
+    ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY
+)
+
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
+    EXPORT ${PROJECT_NAME}-targets
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
+export(
+    TARGETS ${PROJECT_NAME} FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+)
+install(
+    EXPORT ${PROJECT_NAME}-targets DESTINATION lib/cmake/${PROJECT_NAME}
+)
 install(
     DIRECTORY include/grabthecam/ DESTINATION include/grabthecam/
+)
+install(
+    FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
 
