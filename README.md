@@ -19,6 +19,7 @@ Project requirements:
 
 * [OpenCV](https://opencv.org/releases/) library
 * [RapidJSON](https://rapidjson.org/) library
+* [Video4Linux](https://github.com/philips/libv4l) library
 * C++ compiler with C++20 support.
 
 To build the project, go to its root directory and execute:
