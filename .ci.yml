@@ -1,0 +1,27 @@
+image: debian:bookworm
+
+before_script:
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y
+    cmake
+    make
+    g++-12
+    libopencv-dev
+    rapidjson-dev
+    libv4l-dev
+
+stages:
+  - test
+
+example-build:
+  stage: test
+  script:
+    - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
+    - mkdir build && cd build
+    - cmake ../
+    - make & make install
+    - cd ../tests/example-build
+    - cp ../../src/example.cpp example.cpp
+    - mkdir build && cd build
+    - cmake ../
+    - make
