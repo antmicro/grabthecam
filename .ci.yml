@@ -9,17 +9,29 @@ before_script:
     libopencv-dev
     rapidjson-dev
     libv4l-dev
+    clang-tidy
+    clang-format
 
 stages:
-  - test
+  - lint
+  - export-test
 
-example-build:
-  stage: test
+format:
+  stage: lint
   script:
     - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
     - mkdir build && cd build
     - cmake ../
-    - make & make install
+    - make
+    - make format
+
+example-build:
+  stage: export-test
+  script:
+    - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
+    - mkdir build && cd build
+    - cmake ../
+    - make && make install
     - cd ../tests/example-build
     - cp ../../src/example.cpp example.cpp
     - mkdir build && cd build
