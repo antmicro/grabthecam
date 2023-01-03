@@ -12,8 +12,6 @@ set(INCLUDE_DIRECTORIES
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third-party/include/>
     $<INSTALL_INTERFACE:include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include/>
-    $<INSTALL_INTERFACE:include>
 )
 
 add_library(${PROJECT_NAME} SHARED
