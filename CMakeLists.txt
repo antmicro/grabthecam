@@ -74,9 +74,6 @@ install(
     DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 add_custom_target(format
     COMMAND bash -c "find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include -iname \"*.cpp\" -o -iname \"*.hpp\" |xargs clang-tidy -format-style=file -p ${CMAKE_BINARY_DIR} -fix"
     COMMAND bash -c "find ${CMAKE_SOURCE_DIR} ${CMAKE_INCLUDE_DIR} -iname \"*.cpp\" -o -iname \"*.hpp\"| xargs clang-format --style=file -i"
