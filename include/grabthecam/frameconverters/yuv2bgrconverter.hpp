@@ -38,8 +38,8 @@ public:
     cv::Mat convert(cv::Mat src) override;
 
 private:
-    int code;        ///< OpenCV's Color space conversion code (see: constructor)
+    int code;          ///< OpenCV's Color space conversion code (see: constructor)
     int dest_mat_type; ///< OpenCV's datatype for destination matrix (see: constructor)
 };
 
-};
+}; // namespace grabthecam

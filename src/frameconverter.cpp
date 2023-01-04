@@ -9,4 +9,4 @@ cv::Mat FrameConverter::convert(std::shared_ptr<MMapBuffer> src, int src_dtype, 
     return convert(raw_frame);
 }
 
-};
+}; // namespace grabthecam

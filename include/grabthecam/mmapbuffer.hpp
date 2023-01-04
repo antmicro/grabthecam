@@ -30,4 +30,4 @@ public:
     int size;               ///< size of the buffer
 };
 
-};
+}; // namespace grabthecam

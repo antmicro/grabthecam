@@ -70,4 +70,4 @@ void rawToFile(std::string filename, std::shared_ptr<MMapBuffer> frame);
  */
 void saveToFile(std::string filename, cv::Mat &frame);
 
-};
+}; // namespace grabthecam

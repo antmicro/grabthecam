@@ -12,4 +12,4 @@ cv::Mat Yuv2BGRConverter::convert(cv::Mat src)
     return processed_frame;
 }
 
-};
+}; // namespace grabthecam

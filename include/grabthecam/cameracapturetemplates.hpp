@@ -19,4 +19,4 @@ template <Numeric T> void CameraCapture::get(int property, T &value, bool curren
     value = ctrls.controls[0].value;
 }
 
-};
+}; // namespace grabthecam
