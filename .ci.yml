@@ -11,6 +11,7 @@ before_script:
     libv4l-dev
     clang-tidy
     clang-format
+    git
 
 stages:
   - lint
@@ -22,8 +23,8 @@ format:
     - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
     - mkdir build && cd build
     - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
-    - make
     - make format
+    - test -z "$(git diff)" && exit 0 || exit 1
 
 example-build:
   stage: export-test
