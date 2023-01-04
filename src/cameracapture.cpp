@@ -11,7 +11,6 @@
 #include <fstream> //save config
 #include <iostream>
 #include <libv4l2.h>
-#include <ranges>
 #include <sstream>
 #include <sys/ioctl.h> // ioctl
 #include <vector>
@@ -670,10 +669,13 @@ std::vector<CameraCapture::CameraProperty> CameraCapture::queryProperties() cons
     std::vector<CameraProperty> result;
     CameraProperty property;
 
-    auto properties = std::vector{
-        std::views::iota(V4L2_CID_BASE, V4L2_CID_LASTP1),
-        std::views::iota(V4L2_CID_CAMERA_CLASS_BASE, V4L2_CID_CAMERA_CLASS_BASE + 36)
-        } | std::views::join;
+    std::vector<int32_t> properties;
+    for(int i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++) {
+        properties.push_back(i);
+    }
+    for(int i = V4L2_CID_CAMERA_CLASS_BASE; i < V4L2_CID_CAMERA_CLASS_BASE + 36; i++) {
+        properties.push_back(i);
+    }
 
     for (int32_t propertyID : properties)
     {
@@ -684,7 +686,7 @@ std::vector<CameraCapture::CameraProperty> CameraCapture::queryProperties() cons
 
         result.push_back(property);
     }
-    for (int32_t propertyID : std::views::iota(V4L2_CID_PRIVATE_BASE))
+    for(int propertyID = V4L2_CID_PRIVATE_BASE;; propertyID++)
     {
         CameraPropertyStatus status = queryProperty(propertyID, property);
 
