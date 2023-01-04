@@ -245,7 +245,7 @@ public:
      * @return CameraPropertyStatus
      * @throws CameraException
      */
-    CameraPropertyStatus queryProperty(int32_t propertyID, CameraProperty& property) const;
+    CameraPropertyStatus queryProperty(int32_t propertyID, CameraProperty &property) const;
 
     /**
      * @return Vector of CameraProperty
@@ -387,4 +387,4 @@ private:
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
 };
 
-};
+}; // namespace grabthecam

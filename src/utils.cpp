@@ -47,4 +47,4 @@ void saveToFile(std::string filename, cv::Mat &frame)
     }
 }
 
-};
+}; // namespace grabthecam

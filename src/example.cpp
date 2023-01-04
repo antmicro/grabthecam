@@ -1,10 +1,10 @@
+#include "cxxopts/cxxopts.hpp"
 #include "grabthecam/cameracapture.hpp"
 #include "grabthecam/cameracapturetemplates.hpp"
 #include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
 #include "grabthecam/frameconverters/bayer2bgrconverter.hpp"
 #include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
 #include "grabthecam/pixelformatsinfo.hpp"
-#include "cxxopts/cxxopts.hpp"
 #include <opencv2/imgproc.hpp>
 
 #include "grabthecam/utils.hpp"
@@ -36,7 +36,7 @@ Config parseOptions(int argc, char const *argv[])
 
     // Set available options
     cxxopts::Options options(argv[0], "A demo for grabthecam – lightweight, easily adjustable library for "
-                                               "managing v4l cameras and capturing frames.");
+                                      "managing v4l cameras and capturing frames.");
 
     options.add_options()("c, camera", "Filename of a camera device",
                           cxxopts::value(config.camera_filename)->default_value("/dev/video0"))(
@@ -111,7 +111,7 @@ Config parseOptions(int argc, char const *argv[])
 int main(int argc, char const *argv[])
 {
     // SET UP THE CAMERA
-    Config conf = parseOptions(argc, argv);     ///< user's configuration
+    Config conf = parseOptions(argc, argv);                 ///< user's configuration
     grabthecam::CameraCapture camera(conf.camera_filename); ///< cameracapture object
 
     camera.printControls();
@@ -150,12 +150,12 @@ int main(int argc, char const *argv[])
     {
         if (camera.hasConverter())
         {
-            cv::Mat processed_frame = camera.capture();              ///< captured frame
+            cv::Mat processed_frame = camera.capture();                          ///< captured frame
             grabthecam::saveToFile(conf.out_filename + ".png", processed_frame); // save it
         }
         else
         {
-            std::shared_ptr<grabthecam::MMapBuffer> raw_frame;                     ///< Frame fetched from the camera
+            std::shared_ptr<grabthecam::MMapBuffer> raw_frame;         ///< Frame fetched from the camera
             camera.grab();                                             // fetch the frame to camera's buffer 0
             camera.read(raw_frame);                                    // read content from the buffer
             rawToFile(conf.out_filename + "." + conf.type, raw_frame); // save it

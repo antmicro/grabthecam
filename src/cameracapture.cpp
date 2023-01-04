@@ -635,7 +635,7 @@ int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::Pretty
     return 0;
 }
 
-CameraCapture::CameraPropertyStatus CameraCapture::queryProperty(int32_t propertyID, CameraProperty& property) const
+CameraCapture::CameraPropertyStatus CameraCapture::queryProperty(int32_t propertyID, CameraProperty &property) const
 {
     v4l2_queryctrl queryctrl;
     memset(&queryctrl, 0, sizeof(queryctrl));
@@ -670,31 +670,37 @@ std::vector<CameraCapture::CameraProperty> CameraCapture::queryProperties() cons
     CameraProperty property;
 
     std::vector<int32_t> properties;
-    for(int i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++) {
+    for (int i = V4L2_CID_BASE; i < V4L2_CID_LASTP1; i++)
+    {
         properties.push_back(i);
     }
-    for(int i = V4L2_CID_CAMERA_CLASS_BASE; i < V4L2_CID_CAMERA_CLASS_BASE + 36; i++) {
+    for (int i = V4L2_CID_CAMERA_CLASS_BASE; i < V4L2_CID_CAMERA_CLASS_BASE + 36; i++)
+    {
         properties.push_back(i);
     }
 
-    for (int32_t propertyID : properties)
+    for (int32_t property_id : properties)
     {
-        if(queryProperty(propertyID, property) != CameraPropertyStatus::ENABLED)
+        if (queryProperty(property_id, property) != CameraPropertyStatus::ENABLED)
         {
             continue;
         }
 
         result.push_back(property);
     }
-    for(int propertyID = V4L2_CID_PRIVATE_BASE;; propertyID++)
+    for (int property_id = V4L2_CID_PRIVATE_BASE;; property_id++)
     {
-        CameraPropertyStatus status = queryProperty(propertyID, property);
+        CameraPropertyStatus status = queryProperty(property_id, property);
 
-        if(status == CameraPropertyStatus::DISABLED)
+        if (status == CameraPropertyStatus::DISABLED)
+        {
             continue;
+        }
 
-        if(status == CameraPropertyStatus::UNSUPPORTED)
+        if (status == CameraPropertyStatus::UNSUPPORTED)
+        {
             break;
+        }
 
         result.push_back(property);
     }
@@ -734,11 +740,10 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
         throw CameraException("Queried against unsupported property");
     }
 
-    return CameraPropertyDetails{
-        .property = property,
-        .menuEntries = property.type == V4L2_CTRL_TYPE_MENU ?
-            queryPropertyMenuEntries(propertyID) : std::vector<CameraPropertyMenuEntry>()
-    };
+    return CameraPropertyDetails{.property = property,
+                                 .menuEntries = property.type == V4L2_CTRL_TYPE_MENU
+                                                    ? queryPropertyMenuEntries(propertyID)
+                                                    : std::vector<CameraPropertyMenuEntry>()};
 }
 
-};
+}; // namespace grabthecam

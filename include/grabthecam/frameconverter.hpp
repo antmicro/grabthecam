@@ -42,4 +42,4 @@ public:
     int input_format; ///< cv::Mat format for the input frame
 };
 
-};
+}; // namespace grabthecam
