@@ -10,6 +10,7 @@
 namespace grabthecam
 {
 
+/// Information about converters and input formats assigned to pixel formats
 static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConverter>()>> formats_info = {
     {V4L2_PIX_FMT_YYUV, [] { return std::make_shared<Yuv2BGRConverter>(cv::COLOR_YUV2BGR_YUY2); }},
     {V4L2_PIX_FMT_YUYV, [] { return std::make_shared<Yuv2BGRConverter>(cv::COLOR_YUV2BGR_YUY2); }},
@@ -19,13 +20,6 @@ static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConve
     {V4L2_PIX_FMT_SRGGB12,
      [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }},
     {V4L2_PIX_FMT_SRGGB10,
-     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }}}; ///< Information
-                                                                                                       ///< about
-                                                                                                       ///< converters
-                                                                                                       ///< and input
-                                                                                                       ///< formats
-                                                                                                       ///< assigned to
-                                                                                                       ///< pixel
-                                                                                                       ///< formats
+     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }}};
 
 };
