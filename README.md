@@ -9,7 +9,7 @@ Its capabilities include:
 
 - camera properties management using ioctl codes
 - frame format configuration
-- frame fetching (also to the specific location in memory)
+- frame fetching (also to a specific location in memory)
 - raw frame preprocessing
 - saving camera configuration to file
 
