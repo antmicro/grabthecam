@@ -25,7 +25,6 @@ format:
     - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
     - make format
     - test -z "$(git diff)" && exit 0 || exit 1
-  allow_failure: true
 
 example-build:
   stage: export-test
