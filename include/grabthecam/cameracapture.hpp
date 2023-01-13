@@ -8,7 +8,8 @@
 #include <concepts>
 #include <opencv2/core/mat.hpp> // cv::Mat
 
-template <typename T> concept Numeric = std::integral<T> or std::floating_point<T>;
+template <typename T>
+concept Numeric = std::integral<T> or std::floating_point<T>;
 
 namespace grabthecam
 {
