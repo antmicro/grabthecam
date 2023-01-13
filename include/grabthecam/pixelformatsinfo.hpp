@@ -22,4 +22,4 @@ static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConve
     {V4L2_PIX_FMT_SRGGB10,
      [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }}};
 
-};
+}; // namespace grabthecam
