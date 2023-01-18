@@ -2,16 +2,16 @@ image: debian:bookworm
 
 before_script:
   - apt-get update
-  - DEBIAN_FRONTEND=noninteractive apt-get install -y
-    cmake
-    make
-    g++-12
-    libopencv-dev
-    rapidjson-dev
-    libv4l-dev
-    clang-tidy
-    clang-format
-    git
+  - DEBIAN_FRONTEND=noninteractive apt-get install -qqy
+        clang-format
+        clang-tidy
+        cmake
+        g++-12
+        git
+        libopencv-dev
+        libv4l-dev
+        make
+        rapidjson-dev
 
 stages:
   - lint
