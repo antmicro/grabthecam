@@ -1,6 +1,6 @@
 # grabthecam
 
-Copyright (c) 2022 [Antmicro](https://www.antmicro.com)
+Copyright (c) 2022-2023 [Antmicro](https://www.antmicro.com)
 
 A C++ library for controlling video4linux cameras and capturing frames.
 
