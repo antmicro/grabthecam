@@ -1,0 +1,93 @@
+name: grabthecam build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CC: /usr/bin/gcc-12
+  CXX: /usr/bin/g++-12
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqy \
+          clang-format \
+          clang-tidy \
+          cmake \
+          g++-12 \
+          git \
+          libopencv-dev \
+          libv4l-dev \
+          make \
+          rapidjson-dev
+
+    - name: Add repository to safe list
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Checkout sources
+      uses: actions/checkout@v3
+
+    - name: Build the project
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+        make
+
+    - name: Code linting
+      run: |
+        cd build
+        make format
+        test -z $(git diff) && exit 0 || exit 1
+
+  example-build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqy \
+          clang-format \
+          clang-tidy \
+          cmake \
+          g++-12 \
+          git \
+          libopencv-dev \
+          libv4l-dev \
+          make \
+          rapidjson-dev
+
+    - name: Checkout sources
+      uses: actions/checkout@v3
+
+    - name: Build the project
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Install the project
+      run: |
+        cd build
+        make install
+
+    - name: Build the 'example-build'
+      run: |
+        cd tests/example-build
+        cp ../../src/example.cpp ./
+        mkdir build
+        cd build
+        cmake ..
+        make
