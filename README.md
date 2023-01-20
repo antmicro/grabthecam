@@ -25,7 +25,7 @@ Project requirements:
 To build the project, go to its root directory and execute:
 
 ```
-cmake -s . -B build
+cmake -S . -B build
 ```
 
 ## Running the demo
