@@ -272,6 +272,19 @@ public:
     CameraPropertyDetails queryPropertyDetails(int32_t propertyID) const;
 
     /**
+     * @brief Sets the trigger mode for the video device
+     *
+     * @param mode_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
+     * @param source_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
+     * @param source_value source for the trigger set to the source_reg_base_offset register
+     * @param activation_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
+     * @param activation_mode activation mode value set to the activation_reg_base_offset register
+     * @throws CameraException
+     */
+    void setTrigger(uint32_t mode_reg_base_offset, uint32_t source_reg_base_offset, int32_t source_value,
+                    uint32_t activation_reg_base_offset, int32_t activation_mode) const;
+
+    /**
      * Close the camera
      */
     ~CameraCapture();

@@ -27,7 +27,6 @@ int xioctl(int fd, int request, void *arg)
     {
         res = ioctl(fd, request, arg);
     } while (-1 == res && EINTR == errno); // A signal was caught
-
     return res;
 }
 
@@ -744,6 +743,30 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
                                  .menuEntries = property.type == V4L2_CTRL_TYPE_MENU
                                                     ? queryPropertyMenuEntries(propertyID)
                                                     : std::vector<CameraPropertyMenuEntry>()};
+}
+
+void CameraCapture::setTrigger(uint32_t mode_reg_base_offset, uint32_t source_reg_base_offset, int32_t source_value,
+                               uint32_t activation_reg_base_offset, int32_t activation_mode) const
+{
+    struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + mode_reg_base_offset, .value = 1};
+    if (ioctl(this->fd, VIDIOC_S_CTRL, &enable_trigger) == -1)
+    {
+        throw CameraException("Error while enabling trigger ");
+    }
+
+    struct v4l2_control set_trigger_source = {.id = V4L2_CID_CAMERA_CLASS_BASE + source_reg_base_offset,
+                                              .value = source_value};
+    if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_source) == -1)
+    {
+        throw CameraException("Error while setting trigger source");
+    }
+
+    struct v4l2_control set_trigger_activation = {.id = V4L2_CID_CAMERA_CLASS_BASE + activation_reg_base_offset,
+                                                  .value = activation_mode};
+    if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_activation) == -1)
+    {
+        throw CameraException("Error while setting trigger activation mode");
+    }
 }
 
 }; // namespace grabthecam
