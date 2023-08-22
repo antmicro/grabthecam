@@ -7,6 +7,7 @@
 #include "rapidjson/stringbuffer.h"
 #include <concepts>
 #include <opencv2/core/mat.hpp> // cv::Mat
+#include <optional>
 
 template <typename T>
 concept Numeric = std::integral<T> or std::floating_point<T>;
@@ -66,6 +67,28 @@ public:
         std::vector<CameraPropertyMenuEntry> menuEntries;
     };
 
+    /**
+     * @brief Structure holding information about an external trigger
+     *
+     * mode_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
+     * source_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
+     * source_value: source for the trigger set to the source_reg_base_offset register
+     * activation_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
+     * activation_mode: activation mode value set to the activation_reg_base_offset register
+     */
+    typedef struct Trigger
+    {
+        uint32_t mode_reg_base_offset;
+        uint32_t source_reg_base_offset;
+        int32_t source_value;
+        uint32_t activation_reg_base_offset;
+        int32_t activation_mode;
+    } trigger;
+    /**
+     * Returns the trigger information
+     * @returns std::optional for the trigger information structure
+     */
+    std::optional<trigger> getTriggerInfo() { return trigger_info; }
     /**
      * Open the Camera
      *
@@ -274,15 +297,10 @@ public:
     /**
      * @brief Sets the trigger mode for the video device
      *
-     * @param mode_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
-     * @param source_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
-     * @param source_value source for the trigger set to the source_reg_base_offset register
-     * @param activation_reg_base_offset offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
-     * @param activation_mode activation mode value set to the activation_reg_base_offset register
+     * @param trigger_info structure holding trigger information
      * @throws CameraException
      */
-    void setTrigger(uint32_t mode_reg_base_offset, uint32_t source_reg_base_offset, int32_t source_value,
-                    uint32_t activation_reg_base_offset, int32_t activation_mode) const;
+    void setTrigger(trigger trigger_info) const;
 
     /**
      * Close the camera
@@ -399,6 +417,7 @@ private:
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
+    std::optional<trigger> trigger_info;
 };
 
 }; // namespace grabthecam
