@@ -34,13 +34,14 @@ After a successful build, you can run the demo, e.g.:
 
 ```
 cd build
-./grabthecam-demo --type YUYV --dims 960,720 --out frame --save ".my_configuration"
+./grabthecam-demo --type YUYV --dims 960,720 --out frame --save=.my_configuration
 ```
 YUYV is the pixel type supported by the camera, and 960x720 is the frame format;
 
 The captured frame will be saved as `frame.png`.
 
 The configuration will be saved as `.my_configuration`. If you use `-s` it is saved as `.pyvidctrl_<driver_name>` (for compatibility with [pyvidctrl camera management TUI tool](https://github.com/antmicro/pyvidctrl)).
+Please note that `--save` and `--load` can only have values assigned through the `--param=value` syntax.
 
 You can find more information about available arguments in command-line help:
 

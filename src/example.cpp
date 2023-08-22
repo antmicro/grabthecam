@@ -38,19 +38,27 @@ Config parseOptions(int argc, char const *argv[])
     cxxopts::Options options(argv[0], "A demo for grabthecam – lightweight, easily adjustable library for "
                                       "managing v4l cameras and capturing frames.");
 
-    options.add_options()("c, camera", "Filename of a camera device",
-                          cxxopts::value(config.camera_filename)->default_value("/dev/video0"))(
-        "t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",
-        cxxopts::value(config.type))("o, out", "Path to save the frame", cxxopts::value(config.out_filename))(
-        "d, dims", "Frame width and height (eg. `960,720`)",
-        cxxopts::value(config.dims))("s, save",
-                                     "Save configuration to the file. You can provide the filename or the "
-                                     ".pyvidctrl_<driver_name> file will be used",
-                                     cxxopts::value(config.saveConfig)->implicit_value(""))(
-        "l, load",
-        "Load the configuration from file. You can provide the filename or the .pyvidctrl_<driver_name> file will "
-        "be used",
-        cxxopts::value(config.loadConfig)->implicit_value(""))("h, help", "Print usage");
+    // clang-format off
+    options.add_options()
+        ("c, camera", "Filename of a camera device",
+                cxxopts::value(config.camera_filename)->default_value("/dev/video0"))
+        ("t, type", "Frame type (allowed values: YUYV, JPG, BGRA, AR24, RGGB, RG12)",
+                cxxopts::value(config.type))
+        ("o, out", "Path to save the frame",
+                cxxopts::value(config.out_filename))
+        ("d, dims", "Frame width and height (eg. `960,720`)",
+                cxxopts::value(config.dims))
+        // The only working syntax for save and load is --save=value and --load=value, 
+        // it is a known limitation of cxxopts described in 
+        // https://github.com/jarro2783/cxxopts/issues/210 where implicit values have to
+        // be assigned through the `=` sign or will otherwise be ignored
+        ("save", "Save configuration to the file. You can provide the filename or the "
+             ".pyvidctrl_<driver_name> file will be used",
+                cxxopts::value(config.saveConfig)->implicit_value(""))
+        ("load", "Load the configuration from file. You can provide the filename or the"
+            " .pyvidctrl_<driver_name> file will be used",
+                cxxopts::value(config.loadConfig)->implicit_value(""))("h, help", "Print usage");
+    // clang-format on
 
     std::unordered_map<std::string, unsigned int> pix_formats = {
         {"YUYV", V4L2_PIX_FMT_YYUV},   {"JPG", V4L2_PIX_FMT_MJPEG},   {"BGRA", V4L2_PIX_FMT_ABGR32},
