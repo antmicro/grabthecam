@@ -502,6 +502,24 @@ std::string CameraCapture::getConfigFilename()
     return ss.str();
 }
 
+void CameraCapture::saveTriggerInfo(Trigger trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer)
+{
+    writer.StartObject();
+    writer.Key("extraopts");
+    writer.String("trigger_info");
+    writer.Key("trig_offset");
+    writer.Int(trigger_info.mode_reg_base_offset);
+    writer.Key("src_offset");
+    writer.Int(trigger_info.source_reg_base_offset);
+    writer.Key("activation_offset");
+    writer.Int(trigger_info.activation_reg_base_offset);
+    writer.Key("src_value");
+    writer.Int(trigger_info.source_value);
+    writer.Key("activation_value");
+    writer.Int(trigger_info.activation_mode);
+    writer.EndObject();
+}
+
 std::string CameraCapture::saveConfig(std::string filename)
 {
     rapidjson::StringBuffer s;
@@ -528,6 +546,11 @@ std::string CameraCapture::saveConfig(std::string filename)
     for (queryctrl.id = V4L2_CID_CAMERA_CLASS_BASE; queryctrl.id < CAMERA_CLASS_CONTROLS_END; queryctrl.id++)
     {
         saveControlValue(queryctrl, writer);
+    }
+
+    if (this->trigger_info.has_value())
+    {
+        saveTriggerInfo(this->trigger_info.value(), writer);
     }
     writer.EndArray();
 
