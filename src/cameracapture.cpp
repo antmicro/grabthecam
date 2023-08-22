@@ -584,6 +584,20 @@ std::string CameraCapture::loadConfig(std::string filename)
             throw CameraException("Wrong configuration file format: The property is not an object.");
         }
 
+        if (property.HasMember("extraopts"))
+        {
+            if ((std::string)property.FindMember("extraopts")->value.GetString() == "trigger_info")
+            {
+                Trigger info;
+                info.mode_reg_base_offset = property.FindMember("trig_offset")->value.GetInt();
+                info.source_reg_base_offset = property.FindMember("src_offset")->value.GetInt();
+                info.source_value = property.FindMember("src_value")->value.GetInt();
+                info.activation_reg_base_offset = property.FindMember("activation_offset")->value.GetInt();
+                info.activation_mode = property.FindMember("activation_value")->value.GetInt();
+                this->trigger_info.emplace(info);
+            }
+            return filename;
+        }
         // Apply the values
         id = itr->FindMember("id")->value.GetInt();
         value = itr->FindMember("value")->value.GetInt();
@@ -745,24 +759,25 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
                                                     : std::vector<CameraPropertyMenuEntry>()};
 }
 
-void CameraCapture::setTrigger(uint32_t mode_reg_base_offset, uint32_t source_reg_base_offset, int32_t source_value,
-                               uint32_t activation_reg_base_offset, int32_t activation_mode) const
+void CameraCapture::setTrigger(Trigger trigger_info) const
 {
-    struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + mode_reg_base_offset, .value = 1};
+    struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.mode_reg_base_offset,
+                                          .value = 1};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &enable_trigger) == -1)
     {
         throw CameraException("Error while enabling trigger ");
     }
 
-    struct v4l2_control set_trigger_source = {.id = V4L2_CID_CAMERA_CLASS_BASE + source_reg_base_offset,
-                                              .value = source_value};
+    struct v4l2_control set_trigger_source = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.source_reg_base_offset,
+                                              .value = trigger_info.source_value};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_source) == -1)
     {
         throw CameraException("Error while setting trigger source");
     }
 
-    struct v4l2_control set_trigger_activation = {.id = V4L2_CID_CAMERA_CLASS_BASE + activation_reg_base_offset,
-                                                  .value = activation_mode};
+    struct v4l2_control set_trigger_activation = {.id = V4L2_CID_CAMERA_CLASS_BASE +
+                                                        trigger_info.activation_reg_base_offset,
+                                                  .value = trigger_info.activation_mode};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_activation) == -1)
     {
         throw CameraException("Error while setting trigger activation mode");

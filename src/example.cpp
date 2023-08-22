@@ -153,7 +153,11 @@ int main(int argc, char const *argv[])
         std::cout << "Configuration saved to " << filename << std::endl;
     }
 
-    camera.setTrigger(47, 49, 0, 48, 0);
+    // detect if trigger information was set
+    if (camera.getTriggerInfo().has_value())
+    {
+        camera.setTrigger(camera.getTriggerInfo().value());
+    }
 
     // CAPTURE FRAME
     if (conf.out_filename != "")
