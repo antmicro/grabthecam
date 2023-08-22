@@ -89,6 +89,13 @@ public:
      * @returns std::optional for the trigger information structure
      */
     std::optional<trigger> getTriggerInfo() { return trigger_info; }
+
+    /**
+     * Dumps trigger information via the provided writer
+     * @param trigger_info information about the trigger
+     * @param writer rapidjson PrettyWritter object for the config file
+     */
+    void saveTriggerInfo(Trigger trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
     /**
      * Open the Camera
      *
