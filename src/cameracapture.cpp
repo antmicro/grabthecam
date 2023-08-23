@@ -1,7 +1,6 @@
 #include "grabthecam/cameracapture.hpp"
 #include "grabthecam/cameracapturetemplates.hpp"
 #include "grabthecam/pixelformatsinfo.hpp"
-#include "grabthecam/utils.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 #include <rapidjson/istreamwrapper.h>
@@ -786,8 +785,9 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
                                                     : std::vector<CameraPropertyMenuEntry>()};
 }
 
-void CameraCapture::enableTrigger(TriggerInfo trigger_info) const
+void CameraCapture::defaultEnableTrigger() const
 {
+    TriggerInfo trigger_info = this->trigger_info.value();
     struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.mode_reg_base_offset,
                                           .value = 1};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &enable_trigger) == -1)

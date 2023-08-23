@@ -3,9 +3,11 @@
 #include <linux/videodev2.h>
 
 #include "grabthecam/frameconverter.hpp"
+#include "grabthecam/utils.hpp"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include <concepts>
+#include <functional>
 #include <opencv2/core/mat.hpp> // cv::Mat
 #include <optional>
 
@@ -14,6 +16,23 @@ concept Numeric = std::integral<T> or std::floating_point<T>;
 
 namespace grabthecam
 {
+/**
+ * Structure holding information about an external trigger
+ *
+ * mode_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
+ * source_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
+ * source_value: source for the trigger set to the source_reg_base_offset register
+ * activation_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
+ * activation_mode: activation mode value set to the activation_reg_base_offset register
+ */
+struct TriggerInfo
+{
+    uint32_t mode_reg_base_offset;
+    uint32_t source_reg_base_offset;
+    int32_t source_value;
+    uint32_t activation_reg_base_offset;
+    int32_t activation_mode;
+};
 
 /**
  * Handles capturing frames from v4l cameras
@@ -68,28 +87,15 @@ public:
     };
 
     /**
-     * @brief Structure holding information about an external trigger
-     *
-     * mode_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
-     * source_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
-     * source_value: source for the trigger set to the source_reg_base_offset register
-     * activation_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
-     * activation_mode: activation mode value set to the activation_reg_base_offset register
-     */
-    struct TriggerInfo
-    {
-        uint32_t mode_reg_base_offset;
-        uint32_t source_reg_base_offset;
-        int32_t source_value;
-        uint32_t activation_reg_base_offset;
-        int32_t activation_mode;
-    };
-    /**
      * Returns the trigger information
      * @returns std::optional for the trigger information structure
      */
     std::optional<TriggerInfo> getTriggerInfo() { return trigger_info; }
 
+    /**
+     * Sets the trigger information
+     */
+    void setTriggerInfo(TriggerInfo new_info) { this->trigger_info = new_info; }
     /**
      * Dumps trigger information via the provided writer
      * @param trigger_info information about the trigger
@@ -304,10 +310,32 @@ public:
     /**
      * Sets the trigger mode for the video device
      *
-     * @param trigger_info structure holding trigger information
      * @throws CameraException
      */
-    void enableTrigger(TriggerInfo trigger_info) const;
+    void defaultEnableTrigger() const;
+    std::function<void()> enableTrigger = std::bind(&grabthecam::CameraCapture::defaultEnableTrigger, this);
+
+    /**
+     * Sets the trigger enabling method to a provided implementation
+     *
+     * @param func a void() function that will enable the trigger in the video device
+     */
+    void setEnableTriggerFunction(std::function<void()> func) { this->enableTrigger = func; }
+
+    /**
+     * Raises an exception on a not implemented trigger
+     *
+     * @throws CameraException
+     */
+    void defaultTriggerFrame() { throw CameraException("Triggering method not provided."); }
+    std::function<void()> triggerFrame = std::bind(&grabthecam::CameraCapture::defaultTriggerFrame, this);
+
+    /**
+     * Sets the trigger enabling method to a provided implementation
+     *
+     * @param func a void() function that will trigger the trigger in the video device
+     */
+    void setTriggerFrameFunction(std::function<void()> func) { this->triggerFrame = func; }
 
     /**
      * Close the camera
@@ -424,7 +452,7 @@ private:
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
-    std::optional<TriggerInfo> trigger_info;              ///< Information about the external trigger configuration
+    std::optional<TriggerInfo> trigger_info;          ///< Information about the external trigger configuration
 };
 
 }; // namespace grabthecam
