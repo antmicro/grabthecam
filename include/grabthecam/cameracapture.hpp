@@ -19,18 +19,18 @@ namespace grabthecam
 /**
  * Structure holding information about an external trigger
  *
- * mode_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger mode register
- * source_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the trigger source register
- * source_value: source for the trigger set to the source_reg_base_offset register
- * activation_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
- * activation_mode: activation mode value set to the activation_reg_base_offset register
+ * mode_reg: the trigger mode register address
+ * source_reg: the trigger source register address
+ * source_value: source for the trigger set to the source_reg register
+ * activation_reg: the activation mode register address
+ * activation_mode: activation mode value set to the activation_reg register
  */
 struct TriggerInfo
 {
-    uint32_t mode_reg_base_offset;
-    uint32_t source_reg_base_offset;
+    uint32_t mode_reg;
+    uint32_t source_reg;
     int32_t source_value;
-    uint32_t activation_reg_base_offset;
+    uint32_t activation_reg;
     int32_t activation_mode;
 };
 

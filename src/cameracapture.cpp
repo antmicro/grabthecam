@@ -511,11 +511,11 @@ void CameraCapture::saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyW
     writer.Key("name");
     writer.String("trigger_info");
     writer.Key("trig_offset");
-    writer.Int(trigger_info.mode_reg_base_offset);
+    writer.Int(trigger_info.mode_reg);
     writer.Key("src_offset");
-    writer.Int(trigger_info.source_reg_base_offset);
+    writer.Int(trigger_info.source_reg);
     writer.Key("activation_offset");
-    writer.Int(trigger_info.activation_reg_base_offset);
+    writer.Int(trigger_info.activation_reg);
     writer.Key("src_value");
     writer.Int(trigger_info.source_value);
     writer.Key("activation_value");
@@ -615,10 +615,10 @@ std::string CameraCapture::loadConfig(std::string filename)
             if ((std::string)property.FindMember("extraopts")->value.GetString() == "trigger_info")
             {
                 TriggerInfo info;
-                info.mode_reg_base_offset = property.FindMember("trig_offset")->value.GetInt();
-                info.source_reg_base_offset = property.FindMember("src_offset")->value.GetInt();
+                info.mode_reg = property.FindMember("trig_offset")->value.GetInt();
+                info.source_reg = property.FindMember("src_offset")->value.GetInt();
                 info.source_value = property.FindMember("src_value")->value.GetInt();
-                info.activation_reg_base_offset = property.FindMember("activation_offset")->value.GetInt();
+                info.activation_reg = property.FindMember("activation_offset")->value.GetInt();
                 info.activation_mode = property.FindMember("activation_value")->value.GetInt();
                 this->trigger_info.emplace(info);
             }
@@ -788,22 +788,19 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
 void CameraCapture::defaultEnableTrigger() const
 {
     TriggerInfo trigger_info = this->trigger_info.value();
-    struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.mode_reg_base_offset,
-                                          .value = 1};
+    struct v4l2_control enable_trigger = {.id = trigger_info.mode_reg, .value = 1};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &enable_trigger) == -1)
     {
         throw CameraException("Error while enabling trigger ");
     }
 
-    struct v4l2_control set_trigger_source = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.source_reg_base_offset,
-                                              .value = trigger_info.source_value};
+    struct v4l2_control set_trigger_source = {.id = trigger_info.source_reg, .value = trigger_info.source_value};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_source) == -1)
     {
         throw CameraException("Error while setting trigger source");
     }
 
-    struct v4l2_control set_trigger_activation = {.id = V4L2_CID_CAMERA_CLASS_BASE +
-                                                        trigger_info.activation_reg_base_offset,
+    struct v4l2_control set_trigger_activation = {.id = trigger_info.activation_reg,
                                                   .value = trigger_info.activation_mode};
     if (ioctl(this->fd, VIDIOC_S_CTRL, &set_trigger_activation) == -1)
     {
