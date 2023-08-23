@@ -166,8 +166,9 @@ int main(int argc, char const *argv[])
     {
         std::cout << "\nThe camera is now waiting for an external trigger."
                      "\nIn order to save the frame, please set it off via "
-                     "an external tool.\n";
-        camera.enableTrigger(camera.getTriggerInfo().value());
+                     "an external tool or provide a triggering implementation"
+                     "to CameraCapture::triggerFrame and call it.\n";
+        camera.enableTrigger();
     }
 
     // CAPTURE FRAME
