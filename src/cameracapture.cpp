@@ -502,7 +502,7 @@ std::string CameraCapture::getConfigFilename()
     return ss.str();
 }
 
-void CameraCapture::saveTriggerInfo(Trigger trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer)
+void CameraCapture::saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer)
 {
     writer.StartObject();
     writer.Key("extraopts");
@@ -611,7 +611,7 @@ std::string CameraCapture::loadConfig(std::string filename)
         {
             if ((std::string)property.FindMember("extraopts")->value.GetString() == "trigger_info")
             {
-                Trigger info;
+                TriggerInfo info;
                 info.mode_reg_base_offset = property.FindMember("trig_offset")->value.GetInt();
                 info.source_reg_base_offset = property.FindMember("src_offset")->value.GetInt();
                 info.source_value = property.FindMember("src_value")->value.GetInt();
@@ -782,7 +782,7 @@ CameraCapture::CameraPropertyDetails CameraCapture::queryPropertyDetails(int32_t
                                                     : std::vector<CameraPropertyMenuEntry>()};
 }
 
-void CameraCapture::setTrigger(Trigger trigger_info) const
+void CameraCapture::enableTrigger(TriggerInfo trigger_info) const
 {
     struct v4l2_control enable_trigger = {.id = V4L2_CID_CAMERA_CLASS_BASE + trigger_info.mode_reg_base_offset,
                                           .value = 1};

@@ -19,6 +19,7 @@ typedef struct Config
     std::string type = "";                 ///< Raw frame type
     std::vector<int> dims = {};            ///< Frame width and height
     unsigned int pix_format = 0;           ///< Raw frame type – v4l2 code
+    bool use_trigger = false;              ///< Whether to set up and use an external trigger
     std::optional<std::string> saveConfig; ///< Where to save the configuration
     std::optional<std::string> loadConfig; ///< Where to load the configuration from
 } Config;
@@ -52,12 +53,14 @@ Config parseOptions(int argc, char const *argv[])
         // it is a known limitation of cxxopts described in 
         // https://github.com/jarro2783/cxxopts/issues/210 where implicit values have to
         // be assigned through the `=` sign or will otherwise be ignored
-        ("save", "Save configuration to the file. You can provide the filename or the "
+        ("s, save", "Save configuration to the file. You can provide the filename or the "
              ".pyvidctrl_<driver_name> file will be used",
                 cxxopts::value(config.saveConfig)->implicit_value(""))
-        ("load", "Load the configuration from file. You can provide the filename or the"
+        ("l, load", "Load the configuration from file. You can provide the filename or the"
             " .pyvidctrl_<driver_name> file will be used",
-                cxxopts::value(config.loadConfig)->implicit_value(""))("h, help", "Print usage");
+                cxxopts::value(config.loadConfig)->implicit_value(""))
+        ("use_trigger", "Use any trigger source provided in the configuration file")
+        ("h, help", "Print usage");
     // clang-format on
 
     std::unordered_map<std::string, unsigned int> pix_formats = {
@@ -113,6 +116,11 @@ Config parseOptions(int argc, char const *argv[])
         config.out_filename = "";
     }
 
+    if (result.count("use_trigger"))
+    {
+        config.use_trigger = true;
+    }
+
     return config;
 }
 
@@ -154,9 +162,12 @@ int main(int argc, char const *argv[])
     }
 
     // detect if trigger information was set
-    if (camera.getTriggerInfo().has_value())
+    if (camera.getTriggerInfo().has_value() && conf.use_trigger)
     {
-        camera.setTrigger(camera.getTriggerInfo().value());
+        std::cout << "\nThe camera is now waiting for an external trigger."
+                     "\nIn order to save the frame, please set it off via "
+                     "an external tool.\n";
+        camera.enableTrigger(camera.getTriggerInfo().value());
     }
 
     // CAPTURE FRAME

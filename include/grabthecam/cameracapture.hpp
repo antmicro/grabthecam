@@ -76,26 +76,26 @@ public:
      * activation_reg_base_offset: offset to V4L2_CID_CAMERA_CLASS_BASE for the activation mode register
      * activation_mode: activation mode value set to the activation_reg_base_offset register
      */
-    typedef struct Trigger
+    struct TriggerInfo
     {
         uint32_t mode_reg_base_offset;
         uint32_t source_reg_base_offset;
         int32_t source_value;
         uint32_t activation_reg_base_offset;
         int32_t activation_mode;
-    } trigger;
+    };
     /**
      * Returns the trigger information
      * @returns std::optional for the trigger information structure
      */
-    std::optional<trigger> getTriggerInfo() { return trigger_info; }
+    std::optional<TriggerInfo> getTriggerInfo() { return trigger_info; }
 
     /**
      * Dumps trigger information via the provided writer
      * @param trigger_info information about the trigger
      * @param writer rapidjson PrettyWritter object for the config file
      */
-    void saveTriggerInfo(Trigger trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
+    void saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
     /**
      * Open the Camera
      *
@@ -302,12 +302,12 @@ public:
     CameraPropertyDetails queryPropertyDetails(int32_t propertyID) const;
 
     /**
-     * @brief Sets the trigger mode for the video device
+     * Sets the trigger mode for the video device
      *
      * @param trigger_info structure holding trigger information
      * @throws CameraException
      */
-    void setTrigger(trigger trigger_info) const;
+    void enableTrigger(TriggerInfo trigger_info) const;
 
     /**
      * Close the camera
@@ -424,7 +424,7 @@ private:
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames
-    std::optional<trigger> trigger_info;
+    std::optional<TriggerInfo> trigger_info;              ///< Information about the external trigger configuration
 };
 
 }; // namespace grabthecam
