@@ -18,20 +18,14 @@ namespace grabthecam
 {
 /**
  * Structure holding information about an external trigger
- *
- * mode_reg: the trigger mode register address
- * source_reg: the trigger source register address
- * source_value: source for the trigger set to the source_reg register
- * activation_reg: the activation mode register address
- * activation_mode: activation mode value set to the activation_reg register
  */
 struct TriggerInfo
 {
-    uint32_t mode_reg;
-    uint32_t source_reg;
-    int32_t source_value;
-    uint32_t activation_reg;
-    int32_t activation_mode;
+    uint32_t mode_reg;       /// the trigger mode ioctl register address
+    uint32_t source_reg;     /// the trigger source ioctl register address
+    int32_t source_value;    /// source for the trigger set to the source_reg register
+    uint32_t activation_reg; /// the activation mode ioctl register address
+    int32_t activation_mode; /// activation mode value set to the ioctl activation_reg register
 };
 
 /**
@@ -94,6 +88,8 @@ public:
 
     /**
      * Sets the trigger information
+     *
+     * @param new_info structure containing new trigger activation data
      */
     void setTriggerInfo(TriggerInfo new_info) { this->trigger_info = new_info; }
     /**
