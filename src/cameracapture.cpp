@@ -507,6 +507,10 @@ void CameraCapture::saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyW
     writer.StartObject();
     writer.Key("extraopts");
     writer.String("trigger_info");
+    writer.Key("id");
+    writer.Int(0);
+    writer.Key("name");
+    writer.String("trigger_info");
     writer.Key("trig_offset");
     writer.Int(trigger_info.mode_reg_base_offset);
     writer.Key("src_offset");
