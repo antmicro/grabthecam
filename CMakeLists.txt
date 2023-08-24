@@ -6,6 +6,8 @@ project(grabthecam VERSION 0.1)
 find_package(OpenCV REQUIRED)
 find_package(RapidJSON REQUIRED)
 
+option(ADD_GRABTHECAM_FARSHOW_DEMO "Adds a target for grabthecam-farshow integration demo" OFF)
+
 set(INCLUDE_DIRECTORIES
     ${OpenCV_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -50,16 +52,51 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
     ${OpenCV_LIBS}
 )
 
+
+if(ADD_GRABTHECAM_FARSHOW_DEMO)
+    if(NOT farshow_FOUND)
+        cmake_policy(SET CMP0002 OLD)
+        message("farshow not found - building it")
+        include(FetchContent)
+        FetchContent_Declare(farshow
+            GIT_REPOSITORY https://github.com/antmicro/farshow
+            GIT_TAG main
+        )
+        FetchContent_MakeAvailable(farshow)
+    endif()
+
+    add_executable(${PROJECT_NAME}-farshow-streamer
+        src/farshow-streamer-example.cpp
+    )
+    target_include_directories(${PROJECT_NAME}-farshow-streamer PUBLIC ${INCLUDE_DIRECTORIES})
+
+    target_link_libraries(${PROJECT_NAME}-farshow-streamer PRIVATE
+        ${PROJECT_NAME}
+    )
+
+    target_link_libraries(${PROJECT_NAME}-farshow-streamer PUBLIC
+        v4l2
+        ${OpenCV_LIBS}
+        farshow-connection
+    )
+    install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-farshow-streamer ${PROJECT_NAME}-demo
+        EXPORT ${PROJECT_NAME}-targets
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
+else()
+    install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
+        EXPORT ${PROJECT_NAME}-targets
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
+endif()
+
 configure_file(
     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
     ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake @ONLY
 )
 
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
-    EXPORT ${PROJECT_NAME}-targets
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-)
 export(
     TARGETS ${PROJECT_NAME} FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
 )
