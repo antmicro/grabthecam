@@ -64,9 +64,9 @@ Config parseOptions(int argc, char const *argv[])
     // clang-format on
 
     std::unordered_map<std::string, unsigned int> pix_formats = {
-        {"YUYV", V4L2_PIX_FMT_YYUV},   {"JPG", V4L2_PIX_FMT_MJPEG},   {"BGRA", V4L2_PIX_FMT_ABGR32},
-        {"AR24", V4L2_PIX_FMT_ABGR32}, {"RGGB", V4L2_PIX_FMT_SRGGB8}, {"RG10", V4L2_PIX_FMT_SRGGB10},
-        {"RG12", V4L2_PIX_FMT_SRGGB12}};
+        {"YUYV", V4L2_PIX_FMT_YYUV},    {"JPG", V4L2_PIX_FMT_MJPEG},   {"BGRA", V4L2_PIX_FMT_ABGR32},
+        {"AR24", V4L2_PIX_FMT_ABGR32},  {"RGGB", V4L2_PIX_FMT_SRGGB8}, {"RG10", V4L2_PIX_FMT_SRGGB10},
+        {"RG12", V4L2_PIX_FMT_SRGGB12}, {"BX24", V4L2_PIX_FMT_XRGB32}};
 
     // Get command line parameters and parse them
     try
