@@ -12,6 +12,15 @@ before_script:
         libv4l-dev
         make
         rapidjson-dev
+        libglfw3-dev
+        libglew-dev
+        libgl1-mesa-dev
+  - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
+  - git clone --recursive https://github.com/antmicro/farshow
+  - cd farshow
+  - cmake -S . -B ./build
+  - cmake --build ./build
+  - cmake --install ./build
 
 stages:
   - lint
