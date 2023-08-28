@@ -54,6 +54,7 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
 
 
 if(ADD_GRABTHECAM_FARSHOW_DEMO)
+    find_package(farshow QUIET)
     if(NOT farshow_FOUND)
         cmake_policy(SET CMP0002 OLD)
         message("farshow not found - building it")
@@ -70,27 +71,20 @@ if(ADD_GRABTHECAM_FARSHOW_DEMO)
     )
     target_include_directories(${PROJECT_NAME}-farshow-streamer PUBLIC ${INCLUDE_DIRECTORIES})
 
-    target_link_libraries(${PROJECT_NAME}-farshow-streamer PRIVATE
-        ${PROJECT_NAME}
-    )
-
     target_link_libraries(${PROJECT_NAME}-farshow-streamer PUBLIC
+        ${PROJECT_NAME}
         v4l2
-        ${OpenCV_LIBS}
         farshow-connection
+        ${OpenCV_LIBS}
     )
-    install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-farshow-streamer ${PROJECT_NAME}-demo
-        EXPORT ${PROJECT_NAME}-targets
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-    )
-else()
-    install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
-        EXPORT ${PROJECT_NAME}-targets
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-    )
+    install(TARGETS ${PROJECT_NAME}-farshow-streamer)
 endif()
+
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}-demo
+    EXPORT ${PROJECT_NAME}-targets
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
 
 configure_file(
     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake.in
@@ -112,7 +106,7 @@ install(
 )
 
 add_custom_target(format
-    COMMAND bash -c "find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include -iname \"*.cpp\" -o -iname \"*.hpp\" |xargs clang-tidy -format-style=file -p ${CMAKE_BINARY_DIR} -fix"
-    COMMAND bash -c "find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include -iname \"*.cpp\" -o -iname \"*.hpp\"| xargs clang-format --style=file -i"
+    COMMAND bash -c "clang-tidy -format-style=file \$(find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include | egrep '(*hpp|*cpp)' | tr '\\n' ' ') -p ${CMAKE_BINARY_DIR} -fix"
+    COMMAND bash -c "clang-format --style=file -i \$(find ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include | egrep '(*hpp|*cpp)' | tr '\\n' ' ')"
     VERBATIM
 )
