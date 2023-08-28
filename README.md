@@ -28,6 +28,21 @@ To build the project, go to its root directory and execute:
 cmake -S . -B build
 ```
 
+In order to add the option to build a `grabthecam` - `farshow` integration demo, execute the following command instead:
+```
+cmake -S . -B build -DADD_GRABTHECAM_FARSHOW_DEMO=ON
+```
+
+Next, go to `build` and execute either
+```
+make
+```
+for the standalone demonstration, or
+```
+make grabthecam-farshow-streamer
+```
+for the integration demo.
+
 ## Running the demo
 
 After a successful build, you can run the demo, e.g.:
@@ -43,10 +58,17 @@ The captured frame will be saved as `frame.png`.
 The configuration will be saved as `.my_configuration`. If you use `-s` it is saved as `.pyvidctrl_<driver_name>` (for compatibility with [pyvidctrl camera management TUI tool](https://github.com/antmicro/pyvidctrl)).
 Please note that `--save` and `--load` can only have values assigned through the `--param=value` syntax.
 
+Farshow-Grabthecam integration demo follows simmilar syntax, with an addition of `-a <address>` and `-p <port>` for configuring the frame destination for the sender
+```
+cd build
+./grabthecam-farshow-streamer --type YUYV --dims 960,720 -a 0.0.0.0 -p 18881
+```
+
 You can find more information about available arguments in command-line help:
 
 ```
 ./grabthecam-demo --help
+./grabthecam-farshow-streamer --help
 ```
 
 ## Installation
