@@ -13,21 +13,6 @@
 #include "grabthecam/utils.hpp"
 
 /**
- * Parse command line options
- *
- * @param name Four character name of the V4L2 format
- */
-uint32_t convertToV4l2Fourcc(std::string name)
-{
-    uint32_t fourcc = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        fourcc |= (name[0] << 8 * i);
-    }
-    return fourcc;
-}
-
-/**
  * User's preferred configuration
  */
 typedef struct Config
@@ -113,7 +98,7 @@ Config parseOptions(int argc, char const *argv[])
         {
             if (config.type.length() == 4)
             {
-                config.pix_format = convertToV4l2Fourcc(config.type);
+                config.pix_format = grabthecam::convertToV4l2Fourcc(config.type);
             }
             else if (config.type == "JPG")
             {
