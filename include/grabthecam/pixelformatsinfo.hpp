@@ -10,6 +10,21 @@
 namespace grabthecam
 {
 
+/**
+ * Parse command line options
+ *
+ * @param name Four character name of the V4L2 format
+ */
+uint32_t convertToV4l2Fourcc(std::string name)
+{
+    uint32_t fourcc = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        fourcc |= (name[0] << 8 * i);
+    }
+    return fourcc;
+}
+
 /// Information about converters and input formats assigned to pixel formats
 static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConverter>()>> formats_info = {
     {V4L2_PIX_FMT_YYUV, [] { return std::make_shared<Yuv2BGRConverter>(cv::COLOR_YUV2BGR_YUY2); }},
