@@ -64,6 +64,11 @@ cd build
 ./grabthecam-farshow-streamer --type YUYV --dims 960,720 -a 0.0.0.0 -p 18881
 ```
 
+To start the receiver, please follow the README instructions on installation from the [farshow](https://github.com/antmicro/farshow) repository and run
+```(bash)
+farshow -i 0.0.0.0 -p 18881
+```
+
 You can find more information about available arguments in command-line help:
 
 ```
