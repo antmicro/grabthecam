@@ -41,8 +41,7 @@ Config parseOptions(int argc, char const *argv[])
     cxxopts::ParseResult result;
 
     // Set available options
-    cxxopts::Options options(argv[0], "A demo for grabthecam – lightweight, easily adjustable library for "
-                                      "managing v4l cameras and capturing frames.");
+    cxxopts::Options options(argv[0], "A simple camera frame streaming application with farshow.");
 
     // clang-format off
     options.add_options()
