@@ -17,30 +17,18 @@ jobs:
       image: debian:bookworm
 
     steps:
-    - name: Install dependencies
-      run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqy \
-          clang-format \
-          clang-tidy \
-          cmake \
-          g++-12 \
-          git \
-          libopencv-dev \
-          libv4l-dev \
-          make \
-          rapidjson-dev
-
-    - name: Add repository to safe list
-      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
     - name: Checkout sources
       uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        .github/scripts/prepare-env.sh
 
     - name: Build the project
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DADD_GRABTHECAM_FARSHOW_DEMO=ON ..
         make
 
     - name: Code linting
@@ -55,21 +43,12 @@ jobs:
       image: debian:bookworm
 
     steps:
-    - name: Install dependencies
-      run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqy \
-          clang-format \
-          clang-tidy \
-          cmake \
-          g++-12 \
-          git \
-          libopencv-dev \
-          libv4l-dev \
-          make \
-          rapidjson-dev
-
     - name: Checkout sources
       uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        .github/scripts/prepare-env.sh
 
     - name: Build the project
       run: |
