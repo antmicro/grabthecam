@@ -7,10 +7,19 @@
 #include "grabthecam/frameconverters/bayer2bgrconverter.hpp"
 #include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
 #include "grabthecam/pixelformatsinfo.hpp"
+#include <csignal>
 #include <opencv2/imgproc.hpp>
 #include <thread>
 
 #include "grabthecam/utils.hpp"
+
+bool app_running = true;
+
+void appStopHandler(int signum)
+{
+    app_running = false;
+    std::signal(signum, SIG_DFL);
+}
 
 /**
  * User's preferred configuration
@@ -182,11 +191,13 @@ int main(int argc, char const *argv[])
     }
 
     auto f = [&streamer, conf](cv::Mat foo) { streamer.sendFrame(foo, conf.stream_name); };
+    std::signal(SIGINT, appStopHandler);
+
     // CAPTURE FRAMES
     if (camera.hasConverter())
     {
         cv::Mat processed_frame = camera.capture();
-        while (1)
+        while (app_running)
         {
             std::thread sender(f, processed_frame);
             processed_frame = camera.capture();
