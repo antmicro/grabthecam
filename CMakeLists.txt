@@ -16,6 +16,8 @@ set(INCLUDE_DIRECTORIES
     $<INSTALL_INTERFACE:include>
 )
 
+include_directories(${INCLUDE_DIRECTORIES})
+
 add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp
     src/frameconverter.cpp
