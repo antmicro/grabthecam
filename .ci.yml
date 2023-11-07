@@ -1,49 +1,22 @@
 image: debian:bookworm
 
 before_script:
-  - apt-get update
-  - DEBIAN_FRONTEND=noninteractive apt-get install -qqy
-        clang-format
-        clang-tidy
-        cmake
-        g++-12
-        git
-        libopencv-dev
-        libv4l-dev
-        make
-        rapidjson-dev
-        libglfw3-dev
-        libglew-dev
-        libgl1-mesa-dev
-  - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
-  - git clone --recursive https://github.com/antmicro/farshow
-  - cd farshow
-  - cmake -S . -B ./build
-  - cmake --build ./build
-  - cmake --install ./build
-
-stages:
-  - lint
-  - export-test
+    - ./.github/scripts/prepare-env.sh
 
 format:
-  stage: lint
-  script:
-    - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
-    - mkdir build && cd build
-    - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
-    - make format
-    - test -z "$(git diff)" && exit 0 || exit 1
+    script:
+        - mkdir build && cd build
+        - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DADD_GRABTHECAM_FARSHOW_DEMO=ON ../
+        - make format
+        - test -z "$(git diff)" && exit 0 || exit 1
 
 example-build:
-  stage: export-test
-  script:
-    - export CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
-    - mkdir build && cd build
-    - cmake ../
-    - make && make install
-    - cd ../tests/example-build
-    - cp ../../src/example.cpp example.cpp
-    - mkdir build && cd build
-    - cmake ../
-    - make
+    script:
+        - mkdir build && cd build
+        - cmake -DADD_GRABTHECAM_FARSHOW_DEMO=ON ../
+        - make && make install
+        - cd ../tests/example-build
+        - cp ../../src/example.cpp example.cpp
+        - mkdir build && cd build
+        - cmake ../
+        - make
