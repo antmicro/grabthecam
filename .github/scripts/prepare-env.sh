@@ -15,14 +15,15 @@ apt-get install -qqy \
     clang-format \
     clang-tidy \
     cmake \
+    g++ \
     git \
+    libgl1-mesa-dev \
+    libglew-dev \
+    libglfw3-dev \
     libopencv-dev \
     libv4l-dev \
     make \
     rapidjson-dev \
-    libglfw3-dev \
-    libglew-dev \
-    libgl1-mesa-dev \
     >/dev/null 2>&1
 
 echo "Dependencies installed successfully"
