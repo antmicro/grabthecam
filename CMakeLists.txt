@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME} SHARED
     src/mmapbuffer.cpp
     src/frameconverter.cpp
     src/frameconverters/yuv2bgrconverter.cpp
+    src/frameconverters/packedformats2rgbconverter.cpp
     src/frameconverters/bayer2bgrconverter.cpp
     src/frameconverters/anyformat2bgrconverter.cpp
     src/utils.cpp
