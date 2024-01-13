@@ -10,9 +10,10 @@
 #include <functional>
 #include <opencv2/core/mat.hpp> // cv::Mat
 #include <optional>
+#include <type_traits>
 
 template <typename T>
-concept Numeric = std::integral<T> or std::floating_point<T>;
+concept numeric = std::integral<T> or std::floating_point<T>;
 
 namespace grabthecam
 {
@@ -116,7 +117,7 @@ public:
      * @param value Value for the parameter
      * @param warning Print warning to stderr when the value was clamped
      */
-    template <Numeric T> void set(int property, T value, bool warning = true);
+    template <numeric T> void set(int property, T value, bool warning = true);
 
     /**
      * Run ioctl code
@@ -138,7 +139,7 @@ public:
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
      * returned
      */
-    template <Numeric T> void get(int property, T &value, bool current = true) const;
+    template <numeric T> void get(int property, T &value, bool current = true) const;
 
     /**
      * Set the camera frame format to a given value
@@ -443,6 +444,7 @@ private:
     int fd;                                           ///< A file descriptor to the opened camera
     int width;                                        ///< Frame width in pixels, currently set on the camera
     int height;                                       ///< Frame width in pixels, currently set on the camera
+    int v4l2_format_code = 0;                         ///< V4L2_PIX_FMT code, currently set on the camera
     bool ready_to_capture;                            ///< If the buffers are allocated and stream is active
     std::shared_ptr<v4l2_buffer> info_buffer;         ///< Informations about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
