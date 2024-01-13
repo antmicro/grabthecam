@@ -3,7 +3,7 @@
 namespace grabthecam
 {
 
-template <Numeric T> void CameraCapture::set(int property, T value, bool warning)
+template <numeric T> void CameraCapture::set(int property, T value, bool warning)
 {
     v4l2_ext_control ctrl[1];
     memset(&ctrl, 0, sizeof(ctrl));
@@ -12,7 +12,7 @@ template <Numeric T> void CameraCapture::set(int property, T value, bool warning
     setCtrl(property, ctrl, warning);
 }
 
-template <Numeric T> void CameraCapture::get(int property, T &value, bool current) const
+template <numeric T> void CameraCapture::get(int property, T &value, bool current) const
 {
     v4l2_ext_controls ctrls;
     getCtrls(property, current, ctrls);

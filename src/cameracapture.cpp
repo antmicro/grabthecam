@@ -130,6 +130,7 @@ void CameraCapture::updateFormat(bool keep_converter)
     {
         autoSetConverter();
     }
+    this->v4l2_format_code = fmt.fmt.pix.pixelformat;
 }
 
 void CameraCapture::runIoctl(int ioctl, void *value) const
@@ -442,7 +443,24 @@ void CameraCapture::read(std::shared_ptr<MMapBuffer> &frame, int buffer_no) cons
 void CameraCapture::read(std::shared_ptr<cv::Mat> &frame, int dtype, int buffer_no) const
 {
     checkBuffer(buffer_no);
-    frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
+
+    // Some pixel formats with chroma subsampling require the rescaling of the buffer
+    // to properly interface with OpenCV
+
+    switch (this->v4l2_format_code)
+    {
+    case V4L2_PIX_FMT_YUV422P:
+    case V4L2_PIX_FMT_YVU420:
+    case V4L2_PIX_FMT_YUV420:
+    case V4L2_PIX_FMT_NV21:
+    case V4L2_PIX_FMT_NV12:
+    {
+        frame = std::make_shared<cv::Mat>(cv::Mat(height * 3 / 2, width, dtype, buffers[buffer_no]->start));
+        break;
+    }
+    default:
+        frame = std::make_shared<cv::Mat>(cv::Mat(height, width, dtype, buffers[buffer_no]->start));
+    }
 }
 
 void CameraCapture::read(cv::Mat &frame, int dtype, int buffer_no) const
