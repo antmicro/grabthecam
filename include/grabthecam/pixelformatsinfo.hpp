@@ -33,8 +33,8 @@ static std::unordered_map<unsigned int, std::function<std::shared_ptr<FrameConve
      [] { return std::make_shared<AnyFormat2BGRConverter>(cv::COLOR_BGRA2RGB, CV_8UC3, CV_8UC4); }},
     {V4L2_PIX_FMT_SRGGB8, [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR); }},
     {V4L2_PIX_FMT_SRGGB12,
-     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }},
+     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRGGB2BGR_EA, CV_16UC1, CV_16UC3); }},
     {V4L2_PIX_FMT_SRGGB10,
-     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRG2BGR, CV_16UC1, CV_16UC3); }}};
+     [] { return std::make_shared<Bayer2BGRConverter>(cv::COLOR_BayerRGGB2BGR_EA, CV_16UC1, CV_16UC3); }}};
 
 }; // namespace grabthecam
