@@ -64,3 +64,50 @@ jobs:
         cd build
         cmake ..
         make
+
+  test-build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        # By default Github Ubuntu runner uses a regular user (non-root).
+        sudo .github/scripts/prepare-env.sh
+        sudo apt install v4l-utils linux-modules-extra-$(uname -r) 1>/dev/null
+
+        sudo modprobe vivid
+        lsmod | grep -i vivid
+        sudo chown $USER /dev/video0
+        chmod a+rwx /dev/video0
+        v4l2-ctl --list-formats -d /dev/video0
+
+    - name: Build the project
+      run: |
+        # Prepare directories for the artifacts
+        mkdir artifacts
+        mkdir artifacts/frames
+
+        mkdir build
+        cd build
+        cmake .. -DBUILD_TESTS=ON
+        make
+
+    - name: Generate config for pyvidctrl
+      run: |
+        ./build/grabthecam-demo -c /dev/video0 -s
+        cp .pyvidctrl-vivid artifacts/
+
+    - name: Generate test samples
+      run: |
+        ./build/grabthecam-test-frame-fetch /dev/video0
+        cp frame_*.png artifacts/frames/
+
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: test
+        path: |
+          artifacts
