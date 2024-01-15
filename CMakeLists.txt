@@ -8,6 +8,8 @@ find_package(RapidJSON REQUIRED)
 
 option(ADD_GRABTHECAM_FARSHOW_DEMO "Adds a target for grabthecam-farshow integration demo" OFF)
 
+option(BUILD_TESTS "Enables building of testing binaries" OFF)
+
 set(INCLUDE_DIRECTORIES
     ${OpenCV_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -55,6 +57,22 @@ target_link_libraries(${PROJECT_NAME}-demo PUBLIC
     ${OpenCV_LIBS}
 )
 
+if(BUILD_TESTS)
+    add_executable(${PROJECT_NAME}-test-frame-fetch
+        tests/test_frame_fetch.cpp
+    )
+
+    target_include_directories(${PROJECT_NAME}-test-frame-fetch PUBLIC ${INCLUDE_DIRECTORIES})
+
+    target_link_libraries(${PROJECT_NAME}-test-frame-fetch PRIVATE
+        ${PROJECT_NAME}
+    )
+
+    target_link_libraries(${PROJECT_NAME}-test-frame-fetch PUBLIC
+        v4l2
+        ${OpenCV_LIBS}
+    )
+endif()
 
 if(ADD_GRABTHECAM_FARSHOW_DEMO)
     find_package(farshow QUIET)
