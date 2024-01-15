@@ -670,17 +670,34 @@ int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::Pretty
             return 0;
         }
 
-        get(queryctrl.id, value);
-        writer.StartObject();
-        writer.Key("id");
-        writer.Int(queryctrl.id);
-        writer.Key("name");
-        writer.String(reinterpret_cast<char const *>(queryctrl.name));
-        writer.Key("type");
-        writer.Int(queryctrl.type);
-        writer.Key("value");
-        writer.Int(value);
-        writer.EndObject();
+        try
+        {
+            get(queryctrl.id, value);
+            writer.StartObject();
+            writer.Key("id");
+            writer.Int(queryctrl.id);
+            writer.Key("name");
+            writer.String(reinterpret_cast<char const *>(queryctrl.name));
+            writer.Key("type");
+            writer.Int(queryctrl.type);
+            writer.Key("value");
+            writer.Int(value);
+            writer.EndObject();
+        }
+        catch (CameraException e)
+        {
+            switch (e.error_code)
+            {
+            // Skip invalid arguments (nonexistant properties);
+            // they were uncaught and unchecked at that point
+            case EINVAL:
+                break;
+            default:
+                throw CameraException("Error occured while collecting data for the writer, please check your camera "
+                                      "settings and try again",
+                                      e.error_code);
+            }
+        }
     }
     else
     {
