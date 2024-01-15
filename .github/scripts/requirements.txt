@@ -1,0 +1,3 @@
+pyvidctrl @ git+https://github.com/antmicro/pyvidctrl@865d76b3b686c22a74e02b75b931d18138e81638
+ImageHash==4.3.*
+pillow==10.2.*

@@ -84,6 +84,8 @@ jobs:
         chmod a+rwx /dev/video0
         v4l2-ctl --list-formats -d /dev/video0
 
+        pip install -r .github/scripts/requirements.txt
+
     - name: Build the project
       run: |
         # Prepare directories for the artifacts
@@ -105,9 +107,19 @@ jobs:
         ./build/grabthecam-test-frame-fetch /dev/video0
         cp frame_*.png artifacts/frames/
 
+    - name: Test pyvidctrl
+      run: |
+        # Try to restore settings saved from grabthecam
+        pyvidctrl -r ./artifacts/.pyvidctrl-vivid | grep -q "Couldn't restore value of" && exit 1 || true
+
+    - name: Compare images
+      run: |
+        # Using RGB3 as Ground Truth
+        .github/scripts/compare-images.py ./artifacts/frames ./artifacts/frames/frame_RGB3.png
+
     - name: Upload test artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: test
+        name: test_results
         path: |
           artifacts
