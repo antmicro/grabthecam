@@ -33,6 +33,13 @@ In order to add the option to build a `grabthecam` - `farshow` integration demo,
 cmake -S . -B build -DADD_GRABTHECAM_FARSHOW_DEMO=ON
 ```
 
+Moreover, to build test binaries, execute:
+```
+cmake -S . -B build -DBUILD_TESTS=ON
+```
+
+Please note that the two added options can be combined into one command if necessary.
+
 Next, go to `build` and execute either
 ```
 make
