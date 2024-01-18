@@ -220,6 +220,35 @@ To add a new converter, simply create a new class, inheriting from `FrameConvert
 
 If you would like to use your converter in the demo, go to `src/example.cpp`. Add the converter to options, `pix_formats` and create a case for it in the `setConverter` function. You should also add your cpp file to `CMakeLists.txt` to allow automatic build.
 
+
+## FrameConverter compatibility lookup
+
+The FrameConverters are specific to raw input formats.
+Specific formats can have multiple working setups, but one was tested and verified for most common types.
+Those include (please note that specifying the `cv::Mat` format to `grabthecam::read()` is the best practice to ensure compatibility):
+
+- RGB24: no converter necessary
+- BGR24, MJPEG: AnyFormat2BGRConverter COLOR_BGR2RGB CV_8UC3
+- RGBA32: AnyFormat2BGRConverter COLOR_RGBA2RGB CV_8UC4, CV_8UC4
+- ABGR32: AnyFormat2BGRConverter COLOR_BGRA2BGR CV_8UC4
+- BGRA32, ARGB32: Channel swapping issues with OpenCV internal conversion codes, no error with RGBA32 settings
+- RGB332, RGB565, ARGB444, ABGR444, RGBA444, BGRA444, ARGB555, ABGR555, RGBA555, BGRA555: PackedFormats2RGBconverter PACKED_<name_of_format>
+- GRAY: no converter necessary
+- YUY2: Yuv2BGRConverter COLOR_YUV2RGB 
+- UYVY: Yuv2BGRConverter COLOR_YUV2BGR_UYVY 
+- YVYU: Yuv2BGRConverter COLOR_YUV2BGR_YVYU 
+- GRAY10, GRAY12: unsupported in `v4l2`
+- RGGB, BGGR, GBRG, GRBG: Bayer2BGRConverter, COLOR_Bayer<name_of_format>2BGR_EA
+- RG10, RG12, RG16: Bayer2BGRConverter, COLOR_BayerRGGB2BGR_EA, CV_16UC1
+
+For packed YCbCr formats, a rescaling factor is provided to the frame writing method.
+Thus, usage of `grabthecam::read(mat_type)` is required with a specified type.
+
+- NV12: Yuv2BGRConverter COLOR_YUV2BGR_NV12
+- NV21: Yuv2BGRConverter COLOR_YUV2BGR_NV21
+- YUV420: Yuv2BGRConverter COLOR_YUV2BGR_I420
+- YVU420: Yuv2BGRConverter COLOR_YUV2BGR_YV12
+
 ## Licensing
 
 The sources are published under the Apache 2.0 License, except for files located in the `third-party/` directory. For those files, the license is either enclosed in the file header or a separate LICENSE file.
