@@ -6,23 +6,17 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  CC: /usr/bin/gcc-12
-  CXX: /usr/bin/g++-12
-
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container:
-      image: debian:bookworm
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
-        .github/scripts/prepare-env.sh
+        sudo .github/scripts/prepare-env.sh
 
     - name: Build the project
       run: |
@@ -35,7 +29,7 @@ jobs:
       run: |
         cd build
         make format
-        test -z $(git diff) && exit 0 || exit 1
+        test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
 
   example-build:
     runs-on: ubuntu-latest
