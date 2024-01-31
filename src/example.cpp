@@ -48,8 +48,8 @@ Config parseOptions(int argc, char const *argv[])
                 cxxopts::value(config.out_filename))
         ("d, dims", "Frame width and height (eg. `960,720`)",
                 cxxopts::value(config.dims))
-        // The only working syntax for save and load is --save=value and --load=value, 
-        // it is a known limitation of cxxopts described in 
+        // The only working syntax for save and load is --save=value and --load=value,
+        // it is a known limitation of cxxopts described in
         // https://github.com/jarro2783/cxxopts/issues/210 where implicit values have to
         // be assigned through the `=` sign or will otherwise be ignored
         ("s, save", "Save configuration to the file. You can provide the filename or the "

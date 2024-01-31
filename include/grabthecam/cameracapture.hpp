@@ -96,7 +96,7 @@ public:
     /**
      * Dumps trigger information via the provided writer
      * @param trigger_info information about the trigger
-     * @param writer rapidjson PrettyWritter object for the config file
+     * @param writer rapidjson PrettyWriter object for the config file
      */
     void saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
     /**
@@ -233,7 +233,7 @@ public:
      * Grab, export to cv::Mat (and preprocess) frame
      *
      * Grab the frame to designated buffer and read it to cv::Mat. If converter is set, convert the frame using this
-     * converter. If not, ommit preprocessing.
+     * converter. If not, omit preprocessing.
      *
      * @param raw_frame_dtype OpenCV's primitive datatype, in which values in matrix will be stored (see
      * https://docs.opencv.org/4.x/d1/d1b/group__core__hal__interface.html#ga78c5506f62d99edd7e83aba259250394)
@@ -367,7 +367,7 @@ private:
      * @throws CameraException
      *
      * @param property Ioctl code of the parameter to change
-     * @param ctrl Control stucture array with the value for the parameter filled
+     * @param ctrl Control structure array with the value for the parameter filled
      * @param warning Whether to print warning to stderr when the value was clamped
      */
     void setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
@@ -404,7 +404,7 @@ private:
      *
      * @throws CameraException
      * @param n Number of buffers to allocate
-     * @param locations Pointers to a place in memory where frame should be placed. Its lenght should be equal to n. If
+     * @param locations Pointers to a place in memory where frame should be placed. Its length should be equal to n. If
      * not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information
      * see mmap documentation.
      */
@@ -458,7 +458,7 @@ private:
     int height;                                       ///< Frame width in pixels, currently set on the camera
     int v4l2_format_code = 0;                         ///< V4L2_PIX_FMT code, currently set on the camera
     bool ready_to_capture;                            ///< If the buffers are allocated and stream is active
-    std::shared_ptr<v4l2_buffer> info_buffer;         ///< Informations about the current buffer
+    std::shared_ptr<v4l2_buffer> info_buffer;         ///< Information about the current buffer
     int buffer_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;    ///< Type of the allocated buffer
     std::vector<std::shared_ptr<MMapBuffer>> buffers; ///< Currently allocated buffers
     std::shared_ptr<FrameConverter> converter;        ///< Converter for raw frames

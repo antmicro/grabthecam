@@ -65,8 +65,8 @@ Config parseOptions(int argc, char const *argv[])
                 cxxopts::value(config.port))
         ("n, name", "Stream name",
                 cxxopts::value(config.stream_name)->default_value("grabthecam_demo stream"))
-        // The only working syntax for save and load is --save=value and --load=value, 
-        // it is a known limitation of cxxopts described in 
+        // The only working syntax for save and load is --save=value and --load=value,
+        // it is a known limitation of cxxopts described in
         // https://github.com/jarro2783/cxxopts/issues/210 where implicit values have to
         // be assigned through the `=` sign or will otherwise be ignored
         ("s, save", "Save configuration to the file. You can provide the filename or the "
@@ -206,7 +206,7 @@ int main(int argc, char const *argv[])
     else
     {
         throw grabthecam::CameraException(std::to_string(conf.pix_format) +
-                                          " is not convertable from RAW via CV2. Please specify another pixel format.");
+                                          " is not convertible from RAW via CV2. Please specify another pixel format.");
     }
     return 0;
 }

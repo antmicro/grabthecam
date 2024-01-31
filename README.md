@@ -1,6 +1,6 @@
 # grabthecam
 
-Copyright (c) 2022-2023 [Antmicro](https://www.antmicro.com)
+Copyright (c) 2022-2024 [Antmicro](https://www.antmicro.com)
 
 A C++ library for controlling video4linux cameras and capturing frames.
 
@@ -65,7 +65,7 @@ The captured frame will be saved as `frame.png`.
 The configuration will be saved as `.my_configuration`. If you use `-s` it is saved as `.pyvidctrl_<driver_name>` (for compatibility with [pyvidctrl camera management TUI tool](https://github.com/antmicro/pyvidctrl)).
 Please note that `--save` and `--load` can only have values assigned through the `--param=value` syntax.
 
-Farshow-Grabthecam integration demo follows simmilar syntax, with an addition of `-a <address>` and `-p <port>` for configuring the frame destination for the sender
+Farshow-Grabthecam integration demo follows similar syntax, with an addition of `-a <address>` and `-p <port>` for configuring the frame destination for the sender
 ```
 cd build
 ./grabthecam-farshow-streamer --type YUYV --dims 960,720 -a 0.0.0.0 -p 18881
@@ -241,9 +241,9 @@ Those include (please note that specifying the `cv::Mat` format to `grabthecam::
 - BGRA32, ARGB32: Channel swapping issues with OpenCV internal conversion codes, no error with RGBA32 settings
 - RGB332, RGB565, ARGB444, ABGR444, RGBA444, BGRA444, ARGB555, ABGR555, RGBA555, BGRA555: PackedFormats2RGBconverter PACKED_<name_of_format>
 - GRAY: no converter necessary
-- YUY2: Yuv2BGRConverter COLOR_YUV2RGB 
-- UYVY: Yuv2BGRConverter COLOR_YUV2BGR_UYVY 
-- YVYU: Yuv2BGRConverter COLOR_YUV2BGR_YVYU 
+- YUY2: Yuv2BGRConverter COLOR_YUV2RGB
+- UYVY: Yuv2BGRConverter COLOR_YUV2BGR_UYVY
+- YVYU: Yuv2BGRConverter COLOR_YUV2BGR_YVYU
 - GRAY10, GRAY12: unsupported in `v4l2`
 - RGGB, BGGR, GBRG, GRBG: Bayer2BGRConverter, COLOR_Bayer<name_of_format>2BGR_EA
 - RG10, RG12, RG16: Bayer2BGRConverter, COLOR_BayerRGGB2BGR_EA, CV_16UC1
