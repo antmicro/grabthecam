@@ -1,3 +1,7 @@
+// Copyright 2022-2024 Antmicro <www.antmicro.com>
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "cxxopts/cxxopts.hpp"
 #include "grabthecam/cameracapture.hpp"
 #include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
