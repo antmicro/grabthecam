@@ -1,5 +1,4 @@
 #include "grabthecam/cameracapture.hpp"
-#include "grabthecam/cameracapturetemplates.hpp"
 #include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
 #include "grabthecam/frameconverters/packedformats2rgbconverter.hpp"
 #include "grabthecam/frameconverters/bayer2bgrconverter.hpp"

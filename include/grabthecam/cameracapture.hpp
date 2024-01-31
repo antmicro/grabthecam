@@ -117,7 +117,14 @@ public:
      * @param value Value for the parameter
      * @param warning Print warning to stderr when the value was clamped
      */
-    template <numeric T> void set(int property, T value, bool warning = true);
+    template <numeric T> void set(int property, T value, bool warning = true)
+    {
+        v4l2_ext_control ctrl[1];
+        memset(&ctrl, 0, sizeof(ctrl));
+        ctrl[0].value = value;
+
+        setCtrl(property, ctrl, warning);
+    }
 
     /**
      * Run ioctl code
@@ -139,7 +146,12 @@ public:
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
      * returned
      */
-    template <numeric T> void get(int property, T &value, bool current = true) const;
+    template <numeric T> void get(int property, T &value, bool current = true) const
+    {
+        v4l2_ext_controls ctrls;
+        getCtrls(property, current, ctrls);
+        value = ctrls.controls[0].value;
+    }
 
     /**
      * Set the camera frame format to a given value
