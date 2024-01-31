@@ -186,7 +186,7 @@ void CameraCapture::getCtrls(int property, bool current, v4l2_ext_controls &ctrl
         switch (e.error_code)
         {
         case EINVAL:
-            throw CameraException("Check if your stucture is valid and you've filled all required fields.",
+            throw CameraException("Check if your structure is valid and you've filled all required fields.",
                                   e.error_code);
             break;
         case ENOSPC:
@@ -224,7 +224,7 @@ void CameraCapture::setCtrl(int property, v4l2_ext_control *ctrl, bool warning)
         switch (e.error_code)
         {
         case EINVAL:
-            throw CameraException("Check if your stucture is valid and you've filled all required fields.",
+            throw CameraException("Check if your structure is valid and you've filled all required fields.",
                                   e.error_code);
             break;
         case ERANGE:
@@ -259,7 +259,7 @@ void CameraCapture::requestBuffers(int n, std::vector<void *> locations)
     }
     else if (locations.size() != n)
     {
-        throw CameraException("Invalid locations lenght. It should be equal to n");
+        throw CameraException("Invalid locations length. It should be equal to n");
     }
 
     buffers.clear();
@@ -495,7 +495,7 @@ cv::Mat CameraCapture::capture(int raw_frame_dtype, int buffer_no, int number_of
     }
     else
     {
-        std::cerr << "WARNING: No converter provided - ommiting preprocessing\n";
+        std::cerr << "WARNING: No converter provided - omitting preprocessing\n";
     }
     return *frame;
 }
@@ -687,12 +687,12 @@ int CameraCapture::saveControlValue(v4l2_queryctrl &queryctrl, rapidjson::Pretty
         {
             switch (e.error_code)
             {
-            // Skip invalid arguments (nonexistant properties);
+            // Skip invalid arguments (nonexistent properties);
             // they were uncaught and unchecked at that point
             case EINVAL:
                 break;
             default:
-                throw CameraException("Error occured while collecting data for the writer, please check your camera "
+                throw CameraException("Error occurred while collecting data for the writer, please check your camera "
                                       "settings and try again",
                                       e.error_code);
             }
