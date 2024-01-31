@@ -1,5 +1,4 @@
 #include "grabthecam/cameracapture.hpp"
-#include "grabthecam/cameracapturetemplates.hpp"
 #include "grabthecam/pixelformatsinfo.hpp"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"

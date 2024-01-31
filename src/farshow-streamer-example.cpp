@@ -2,7 +2,6 @@
 #include "farshow/framesender.hpp"
 #include "farshow/streamexception.hpp"
 #include "grabthecam/cameracapture.hpp"
-#include "grabthecam/cameracapturetemplates.hpp"
 #include "grabthecam/frameconverters/anyformat2bgrconverter.hpp"
 #include "grabthecam/frameconverters/bayer2bgrconverter.hpp"
 #include "grabthecam/frameconverters/yuv2bgrconverter.hpp"
