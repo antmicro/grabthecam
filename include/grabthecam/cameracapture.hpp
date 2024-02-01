@@ -164,7 +164,7 @@ public:
      * @throws CameraException
      * @param width Image width in pixels
      * @param height Image height in pixels
-     * @param pixelformat The pixel format or type of compression
+     * @param pixelformat The pixel format or type of compression. If set to 0, the current pixel format is used.
      * (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
      * @param keep_converter If set to false, try to determine converter based on pixel format (see: autoSetConverter)
      */

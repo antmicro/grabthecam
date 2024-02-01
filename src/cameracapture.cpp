@@ -84,7 +84,14 @@ void CameraCapture::setFormat(unsigned int width, unsigned int height, unsigned 
         fmt.fmt.pix.width = width;
         fmt.fmt.pix.height = height;
     }
+
     fmt.fmt.pix.pixelformat = pixelformat;
+    // Current format
+    if (pixelformat == 0)
+    {
+        fmt.fmt.pix.pixelformat = v4l2_format_code;
+    }
+
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
     if (xioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
     {
