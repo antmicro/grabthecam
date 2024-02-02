@@ -735,6 +735,9 @@ CameraCapture::CameraPropertyStatus CameraCapture::queryProperty(int32_t propert
         property.id = propertyID;
         property.name = (char *)queryctrl.name;
         property.type = queryctrl.type;
+        property.step = queryctrl.step;
+        property.maximum = queryctrl.maximum;
+        property.minimum = queryctrl.minimum;
 
         return CameraPropertyStatus::ENABLED;
     }

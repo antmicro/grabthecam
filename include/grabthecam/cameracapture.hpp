@@ -63,6 +63,9 @@ public:
         std::string name;
         uint32_t type;
         int64_t defaultValue;
+        int32_t minimum;
+        int32_t maximum;
+        int32_t step;
     };
 
     /**
@@ -87,6 +90,7 @@ public:
 
     /**
      * Returns the trigger information
+     *
      * @returns std::optional for the trigger information structure
      */
     std::optional<TriggerInfo> getTriggerInfo() { return trigger_info; }
@@ -97,29 +101,33 @@ public:
      * @param new_info structure containing new trigger activation data
      */
     void setTriggerInfo(TriggerInfo new_info) { this->trigger_info = new_info; }
+
     /**
      * Dumps trigger information via the provided writer
+     *
      * @param trigger_info information about the trigger
      * @param writer rapidjson PrettyWriter object for the config file
      */
     void saveTriggerInfo(TriggerInfo trigger_info, rapidjson::PrettyWriter<rapidjson::StringBuffer> &writer);
+
     /**
      * Open the Camera
      *
-     * @throws CameraException
      * @param filename Path to the camera file
+     *
+     * @throws CameraException
      */
     CameraCapture(std::string filename);
 
     /**
      * Set camera setting to a given value
      *
-     * @throws CameraException
-     *
      * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter to change
      * @param value Value for the parameter
      * @param warning Print warning to stderr when the value was clamped
+     *
+     * @throws CameraException
      */
     template <numeric T> void set(int property, T value, bool warning = true)
     {
@@ -133,22 +141,23 @@ public:
     /**
      * Run ioctl code
      *
-     * @throws CameraException
      * @param ioctl Ioctl code to run
      * @param value Structure, which will be used in this execution
+     *
+     * @throws CameraException
      */
     void runIoctl(int ioctl, void *value) const;
 
     /**
      * Get the camera setting value
      *
-     * @throws CameraException
-     *
      * @tparam Type of the parameter value. Should be numeric, i.e. int, float, double, bool...
      * @param property Ioctl code of the parameter
      * @param value Numeric (int, float, bool...) variable, which will be filled with value
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
      * returned
+     *
+     * @throws CameraException
      */
     template <numeric T> void get(int property, T &value, bool current = true) const
     {
@@ -159,20 +168,20 @@ public:
 
     /**
      * Set the camera frame format to a given value
-     *
      * If the dimentons are 0 x 0, only pixel format is changed
-     * @throws CameraException
+     *
      * @param width Image width in pixels
      * @param height Image height in pixels
      * @param pixelformat The pixel format or type of compression. If set to 0, the current pixel format is used.
      * (https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/pixfmt-reserved.html)
      * @param keep_converter If set to false, try to determine converter based on pixel format (see: autoSetConverter)
+     *
+     * @throws CameraException
      */
     void setFormat(unsigned int width, unsigned int height, unsigned int pixelformat = 0, bool keep_converter = false);
 
     /**
      * Save configuration to file
-     *
      * Save camera parameters to file, so you can load them later.
      *
      * @param filename Where to save the configuration (by default it's `.pyvidctrl-<driver_name>`)
@@ -258,6 +267,7 @@ public:
     //------------------------------------------------------------------------------------------------
     /**
      * Sets converter for raw frames
+     *
      * @param converter Converter object
      */
     void setConverter(std::shared_ptr<FrameConverter> converter) { this->converter = converter; }
@@ -265,13 +275,14 @@ public:
     /**
      * Whether the object has a converter set
      *
-     * @returns true if the converter is set, false otherwise
+     * @return true if the converter is set, false otherwise
      */
     bool hasConverter() { return (bool)converter; }
 
     /**
      * Returns the camera's file descriptor
-     * @returns Camera file descriptor
+     *
+     * @return Camera file descriptor
      */
     int getFd() { return fd; }
 
@@ -292,13 +303,18 @@ public:
      *
      * @param propertyID Index of queried property
      * @param property A reference to a CameraProperty object to be filled with fetched data
+     *
      * @return CameraPropertyStatus
+     *
      * @throws CameraException
      */
     CameraPropertyStatus queryProperty(int32_t propertyID, CameraProperty &property) const;
 
     /**
+     * @brief Query all properties
+     *
      * @return Vector of CameraProperty
+     *
      * @throws CameraException
      */
     std::vector<CameraProperty> queryProperties() const;
@@ -307,15 +323,18 @@ public:
      * @brief Query all menu entries for given property
      *
      * @param propertyID Index of queried property
+     *
      * @return std::vector<CameraPropertyMenuEntry>
      */
     std::vector<CameraPropertyMenuEntry> queryPropertyMenuEntries(int32_t propertyID) const;
 
     /**
-     * @brief
+     * @brief Query details of a property
      *
      * @param propertyID Index of queried property
+     *
      * @return CameraPropertyDetails
+     *
      * @throws CameraException
      */
     CameraPropertyDetails queryPropertyDetails(int32_t propertyID) const;
@@ -358,32 +377,33 @@ public:
 private:
     /**
      * Check if the camera supports the property
-     *
-     * @throws CameraException
      * @param property Property to check
      * @param query The structure, where the results should be stored. It should be empty.
+     *
+     * @throws CameraException
      */
     void queryProperty(int property, v4l2_queryctrl &query) const;
 
     /*
      * Set camera setting to a given value
      *
-     * @throws CameraException
-     *
      * @param property Ioctl code of the parameter to change
      * @param ctrl Control structure array with the value for the parameter filled
      * @param warning Whether to print warning to stderr when the value was clamped
+     *
+     * @throws CameraException
      */
     void setCtrl(int property, v4l2_ext_control *ctrl, bool warning = true);
 
     /**
      * Get v4l2 structure with camera property
      *
-     * @throws CameraException
      * @param property Ioctl code of the parameter
      * @param current Whether to get currently set value. If it's set to false, the default parameter's value is
      * returned
      * @param ctrls Structure, which will be filled with the parameter's value
+     *
+     * @throws CameraException
      */
     void getCtrls(int property, bool current, v4l2_ext_controls &ctrls) const;
 
@@ -406,11 +426,12 @@ private:
     /*
      * Ask the device for the buffers to capture frames and allocate memory for them
      *
-     * @throws CameraException
      * @param n Number of buffers to allocate
      * @param locations Pointers to a place in memory where frame should be placed. Its length should be equal to n. If
      * not provided, the kernel chooses the (page-aligned) address at which to create the mappings. For more information
      * see mmap documentation.
+     *
+     * @throws CameraException
      */
     void requestBuffers(int n = 1, std::vector<void *> locations = std::vector<void *>());
 
